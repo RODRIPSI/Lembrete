@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1220">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<title>Central de Lembretes</title>
+<style>
+:root{--bg:#0b1220;--card:#131c30;--line:#22304d;--gold:#d4af37;--txt:#e8ecf4;--mut:#8b97b1;--red:#e5534b;--grn:#3ecf8e}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.4 system-ui,sans-serif;padding-bottom:90px}
+header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:12px 14px}
+.top{display:flex;align-items:center;gap:8px}
+h1{font-size:19px;margin:0;flex:1;color:var(--gold);letter-spacing:.3px}
+button{font:inherit;color:var(--txt);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
+button.gold{background:var(--gold);color:#1a1405;border-color:var(--gold);font-weight:600}
+button:disabled{opacity:.5}
+#status{font-size:12px;color:var(--mut);margin-top:6px}
+#chips{display:flex;gap:6px;overflow-x:auto;margin-top:10px;padding-bottom:2px}
+.chip{white-space:nowrap;border-radius:999px;padding:5px 11px;font-size:13px}
+.chip.on{background:var(--gold);color:#1a1405;border-color:var(--gold)}
+main{padding:6px 14px}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--mut);margin:20px 0 8px}
+h2.late{color:var(--red)}
+.item{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--c,#888);border-radius:12px;padding:11px 12px;margin-bottom:8px}
+.item.late{border-color:var(--red);border-left-color:var(--red)}
+.row{display:flex;gap:8px;align-items:flex-start}
+.tit{flex:1;font-weight:600}
+.meta{font-size:12.5px;color:var(--mut);margin-top:3px}
+.tag{display:inline-block;border-radius:6px;padding:1px 7px;font-size:11.5px;color:#0b1220;background:var(--c);font-weight:600;margin-right:6px}
+.det{font-size:14px;color:#c4cce0;margin-top:5px}
+.acts{display:flex;gap:6px;margin-top:9px;flex-wrap:wrap}
+.acts button{padding:6px 10px;font-size:14px}
+.ok{color:var(--grn);border-color:var(--grn)}
+.empty{color:var(--mut);text-align:center;padding:40px 10px}
+#fab{position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom));width:58px;height:58px;border-radius:50%;font-size:30px;padding:0}
+dialog{background:var(--card);color:var(--txt);border:1px solid var(--line);border-radius:14px;width:min(92vw,420px);padding:16px}
+dialog::backdrop{background:#000a}
+label{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
+input,select,textarea{width:100%;font:inherit;color:var(--txt);background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px}
+.dlg-acts{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
+.small{font-size:12.5px;color:var(--mut)}
+details summary{cursor:pointer;color:var(--mut);margin:18px 0 8px;font-size:13px}
+</style>
+</head>
+<body>
+<header>
+  <div class="top">
+    <h1>🔔 Central de Lembretes</h1>
+    <button id="btnSync" class="gold">Sincronizar</button>
+    <button id="btnCfg" aria-label="Configurações">⚙️</button>
+  </div>
+  <div id="status">Toque em Sincronizar para conectar ao Google.</div>
+  <div id="chips"></div>
+</header>
+<main id="lista"></main>
+<button id="fab" class="gold" aria-label="Novo lembrete">＋</button>
+
+<dialog id="dNovo">
+  <b id="dNovoT">Novo lembrete</b>
+  <label>O que lembrar</label><input id="nTit">
+  <label>Detalhe (opcional)</label><textarea id="nDet" rows="2"></textarea>
+  <label>Quando (opcional)</label><input id="nQuando" type="datetime-local">
+  <label><input id="nPriv" type="checkbox" style="width:auto"> Privado (a Agenda mostra só "Lembrete")</label>
+  <div class="dlg-acts"><button id="nCancel">Cancelar</button><button id="nSave" class="gold">Salvar</button></div>
+</dialog>
+
+<dialog id="dAdiar">
+  <b>Adiar para</b>
+  <div class="acts" style="flex-direction:column;margin-top:10px">
+    <button data-a="1h">Daqui a 1 hora</button>
+    <button data-a="tarde">Hoje às 18h</button>
+    <button data-a="amanha">Amanhã às 9h</button>
+    <button data-a="semana">Daqui a 7 dias, 9h</button>
+    <input id="aOutro" type="datetime-local">
+    <button data-a="outro">Usar a data acima</button>
+  </div>
+  <div class="dlg-acts"><button id="aCancel">Cancelar</button></div>
+</dialog>
+
+<dialog id="dCfg">
+  <b>Configurações</b>
+  <label>ID do cliente Google (o mesmo do Bloco Mágico)</label>
+  <input id="cClient" placeholder="xxxx.apps.googleusercontent.com" autocapitalize="off" autocorrect="off">
+  <p class="small">Use o mesmo ID do projeto "Bloco Magico" no Google Cloud, para a Central enxergar os arquivos que os outros apps gravam no Drive.</p>
+  <label>Aviso do aplicativo</label>
+  <button id="cNotif">Ativar notificações</button>
+  <div class="dlg-acts"><button id="cCancel">Fechar</button><button id="cSave" class="gold">Salvar</button></div>
+</dialog>
+
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script>
+'use strict';
+const APPS={
+  consultorio:{n:'Consultório',c:'#5b8def'},saude:{n:'Saúde',c:'#3ecf8e'},bloco:{n:'Bloco Mágico',c:'#b07cf0'},
+  bussola:{n:'Bússola',c:'#f0a23e'},financeiro:{n:'Financeiro',c:'#e5534b'},memoria:{n:'Memória',c:'#4fc3d9'},
+  mercado:{n:'Mercado e compras',c:'#d4af37'},central:{n:'Manual',c:'#9aa3b2'}
+};
+const SCOPE='https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/calendar.events';
+const CAL='https://www.googleapis.com/calendar/v3/calendars/primary/events';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ld=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return d}};
+const sv=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
+
+let cfg=ld('lem_cfg',{clientId:'',consent:false});
+let st=ld('lem_state',{done:{},ate:{},cal:{},manual:[]});   // estado da Central
+let src=ld('lem_src',[]);                                    // itens vindos dos apps
+let filtro='todos', token=null, tokenExp=0, tc=null, dirty=false, syncing=false, adiarKey=null, editId=null;
+
+/* ---------- datas ---------- */
+function parseQ(q){
+  const m=String(q||'').match(/^(\d{4})-(\d\d)-(\d\d)(?:[T ](\d\d):(\d\d))?/);
+  return m?new Date(+m[1],+m[2]-1,+m[3],m[4]?+m[4]:9,m[5]?+m[5]:0):null;
+}
+const two=n=>String(n).padStart(2,'0');
+const toLocalInput=d=>`${d.getFullYear()}-${two(d.getMonth()+1)}-${two(d.getDate())}T${two(d.getHours())}:${two(d.getMinutes())}`;
+function fmt(d){
+  const h=new Date(),t0=new Date(h.getFullYear(),h.getMonth(),h.getDate()),d0=new Date(d.getFullYear(),d.getMonth(),d.getDate());
+  const diff=Math.round((d0-t0)/864e5), hr=`${two(d.getHours())}:${two(d.getMinutes())}`;
+  if(diff===0)return 'Hoje '+hr; if(diff===1)return 'Amanhã '+hr; if(diff===-1)return 'Ontem '+hr;
+  return d.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short'})+' '+hr;
+}
+
+/* ---------- itens ---------- */
+function todos(){
+  const out=[];
+  const add=(it,app)=>{
+    if(!it||!it.id||!it.titulo)return;
+    const key=app+':'+it.id, q=st.ate[key]||it.quando;
+    out.push({...it,app,key,due:parseQ(q),orig:parseQ(it.quando),done:!!st.done[key]});
+  };
+  src.forEach(f=>(f.itens||[]).forEach(it=>add(it,f.app)));
+  st.manual.forEach(it=>add(it,'central'));
+  return out;
+}
+function render(){
+  const all=todos(), now=new Date();
+  const apps=[...new Set(all.map(i=>i.app))];
+  $('#chips').innerHTML=['todos',...apps].map(a=>`<button class="chip ${filtro===a?'on':''}" data-f="${a}">${a==='todos'?'Todos':esc((APPS[a]||{n:a}).n)}</button>`).join('');
+  const vis=all.filter(i=>filtro==='todos'||i.app===filtro);
+  const pend=vis.filter(i=>!i.done).sort((a,b)=>(a.due||9e15)-(b.due||9e15));
+  const t0=new Date(now.getFullYear(),now.getMonth(),now.getDate()), t1=new Date(+t0+864e5), t2=new Date(+t0+2*864e5);
+  const G=[['Atrasados',pend.filter(i=>i.due&&i.due<now),'late'],
+           ['Hoje',pend.filter(i=>i.due&&i.due>=now&&i.due<t1)],
+           ['Amanhã',pend.filter(i=>i.due&&i.due>=t1&&i.due<t2)],
+           ['Próximos',pend.filter(i=>i.due&&i.due>=t2)],
+           ['Sem data',pend.filter(i=>!i.due)]];
+  let h='';
+  for(const [t,l,c] of G) if(l.length) h+=`<h2 class="${c||''}">${t} · ${l.length}</h2>`+l.map(card).join('');
+  if(!h)h='<div class="empty">Nenhum lembrete pendente 🎉</div>';
+  const fe=vis.filter(i=>i.done).slice(0,30);
+  if(fe.length)h+=`<details><summary>Feitos (${fe.length})</summary>${fe.map(i=>card(i,true)).join('')}</details>`;
+  $('#lista').innerHTML=h;
+}
+function card(i,feito){
+  const a=APPS[i.app]||{n:i.app,c:'#888'}, late=!feito&&i.due&&i.due<new Date();
+  const adiado=st.ate[i.key]?' · adiado':'';
+  return `<div class="item ${late?'late':''}" style="--c:${a.c}">
+    <div class="row"><div class="tit">${esc(i.titulo)}</div></div>
+    <div class="meta"><span class="tag">${esc(a.n)}</span>${i.due?esc(fmt(i.due))+adiado:'sem data'}${i.categoria?' · '+esc(i.categoria):''}</div>
+    ${i.detalhe?`<div class="det">${esc(i.detalhe)}</div>`:''}
+    <div class="acts">
+      ${feito?`<button data-act="undo" data-k="${esc(i.key)}">Desfazer</button>`
+        :`<button class="ok" data-act="done" data-k="${esc(i.key)}">✓ Feito</button><button data-act="snz" data-k="${esc(i.key)}">Adiar</button>`}
+      ${i.link?`<a href="${esc(i.link)}" target="_blank" rel="noopener"><button>Abrir no app</button></a>`:''}
+      ${i.app==='central'&&!feito?`<button data-act="edit" data-k="${esc(i.key)}">Editar</button><button data-act="del" data-k="${esc(i.key)}">Excluir</button>`:''}
+    </div></div>`;
+}
+function persist(){sv('lem_state',st);sv('lem_src',src);dirty=true;render();if(token)sync(true);}
+
+/* ---------- ações ---------- */
+document.addEventListener('click',e=>{
+  const c=e.target.closest('.chip'); if(c){filtro=c.dataset.f;render();return;}
+  const b=e.target.closest('[data-act]'); if(!b)return;
+  const k=b.dataset.k, act=b.dataset.act;
+  if(act==='done'){st.done[k]=new Date().toISOString();persist();}
+  else if(act==='undo'){delete st.done[k];persist();}
+  else if(act==='snz'){adiarKey=k;$('#aOutro').value='';$('#dAdiar').showModal();}
+  else if(act==='del'){if(confirm('Excluir este lembrete?')){st.manual=st.manual.filter(m=>'central:'+m.id!==k);delete st.done[k];delete st.ate[k];persist();}}
+  else if(act==='edit'){abrirNovo(st.manual.find(m=>'central:'+m.id===k));}
+});
+$('#dAdiar').addEventListener('click',e=>{
+  const a=e.target.dataset.a; if(!a)return;
+  const n=new Date(); let d;
+  if(a==='1h')d=new Date(+n+36e5);
+  else if(a==='tarde'){d=new Date(n.getFullYear(),n.getMonth(),n.getDate(),18,0);if(d<=n)d=new Date(+d+864e5);}
+  else if(a==='amanha')d=new Date(n.getFullYear(),n.getMonth(),n.getDate()+1,9,0);
+  else if(a==='semana')d=new Date(n.getFullYear(),n.getMonth(),n.getDate()+7,9,0);
+  else {d=parseQ($('#aOutro').value);if(!d){alert('Escolha a data e hora.');return;}}
+  st.ate[adiarKey]=toLocalInput(d);$('#dAdiar').close();persist();
+});
+$('#aCancel').onclick=()=>$('#dAdiar').close();
+
+function abrirNovo(it){
+  editId=it?it.id:null;
+  $('#dNovoT').textContent=it?'Editar lembrete':'Novo lembrete';
+  $('#nTit').value=it?it.titulo:'';$('#nDet').value=it?it.detalhe||'':'';
+  $('#nQuando').value=it&&it.quando?toLocalInput(parseQ(it.quando)):'';$('#nPriv').checked=!!(it&&it.privado);
+  $('#dNovo').showModal();
+}
+$('#fab').onclick=()=>abrirNovo();
+$('#nCancel').onclick=()=>$('#dNovo').close();
+$('#nSave').onclick=()=>{
+  const titulo=$('#nTit').value.trim(); if(!titulo){alert('Escreva o que lembrar.');return;}
+  const obj={id:editId||'m'+Date.now().toString(36),titulo,detalhe:$('#nDet').value.trim(),quando:$('#nQuando').value||null,privado:$('#nPriv').checked};
+  if(editId){st.manual=st.manual.map(m=>m.id===editId?obj:m);delete st.ate['central:'+editId];}else st.manual.push(obj);
+  $('#dNovo').close();persist();
+};
+
+/* ---------- configurações ---------- */
+$('#btnCfg').onclick=()=>{$('#cClient').value=cfg.clientId||'';$('#dCfg').showModal();};
+$('#cCancel').onclick=()=>$('#dCfg').close();
+$('#cSave').onclick=()=>{cfg.clientId=$('#cClient').value.trim();sv('lem_cfg',cfg);tc=null;$('#dCfg').close();};
+$('#cNotif').onclick=async()=>{
+  if(!('Notification' in window)){alert('Este navegador não suporta notificações.');return;}
+  const r=await Notification.requestPermission();$('#cNotif').textContent=r==='granted'?'Notificações ativadas ✓':'Notificações bloqueadas';
+};
+
+/* ---------- Google ---------- */
+function setStatus(t){$('#status').textContent=t;}
+function ensureToken(){
+  return new Promise((res,rej)=>{
+    if(token&&Date.now()<tokenExp-60000)return res();
+    if(!cfg.clientId){$('#cClient').value='';$('#dCfg').showModal();return rej(new Error('Informe o ID do cliente Google.'));}
+    if(!window.google||!google.accounts){return rej(new Error('Google ainda carregando, tente de novo.'));}
+    if(!tc)tc=google.accounts.oauth2.initTokenClient({client_id:cfg.clientId,scope:SCOPE,callback:r=>{
+      if(r.error){return tc._rej&&tc._rej(new Error(r.error));}
+      token=r.access_token;tokenExp=Date.now()+r.expires_in*1000;cfg.consent=true;sv('lem_cfg',cfg);tc._res&&tc._res();
+    },error_callback:e=>tc._rej&&tc._rej(new Error(e.type||'erro'))});
+    tc._res=res;tc._rej=rej;tc.requestAccessToken({prompt:cfg.consent?'':'consent'});
+  });
+}
+async function api(url,opt={}){
+  const r=await fetch(url,{...opt,headers:{Authorization:'Bearer '+token,...(opt.headers||{})}});
+  if(r.status===401){token=null;throw new Error('Sessão do Google expirou. Toque em Sincronizar.');}
+  return r;
+}
+async function pasta(){
+  const cache=ld('lem_folder',null); if(cache)return cache;
+  let r=await api('https://www.googleapis.com/drive/v3/files?q='+encodeURIComponent("name='Lembretes' and mimeType='application/vnd.google-apps.folder' and trashed=false")+'&fields=files(id)');
+  let j=await r.json(); let id=j.files&&j.files[0]&&j.files[0].id;
+  if(!id){r=await api('https://www.googleapis.com/drive/v3/files',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:'Lembretes',mimeType:'application/vnd.google-apps.folder'})});id=(await r.json()).id;}
+  sv('lem_folder',id);return id;
+}
+async function gravar(folder,name,obj,fileId){
+  const content=JSON.stringify(obj);
+  if(fileId)return api(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`,{method:'PATCH',headers:{'Content-Type':'application/json'},body:content});
+  const b='lemBND', body=`--${b}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify({name,parents:[folder]})}\r\n--${b}\r\nContent-Type: application/json\r\n\r\n${content}\r\n--${b}--`;
+  return api('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',{method:'POST',headers:{'Content-Type':'multipart/related; boundary='+b},body});
+}
+const evId=k=>'lem'+[...k].map(c=>c.charCodeAt(0).toString(32).padStart(2,'0')).join('');
+function evento(i){
+  const s=i.due, e=new Date(+s+15*60000);
+  return {summary:'🔔 '+(i.privado?'Lembrete':i.titulo)+(i.privado?'':' ('+(APPS[i.app]||{n:i.app}).n+')'),
+    description:i.privado?'Lembrete privado — abra a Central de Lembretes.':(i.detalhe||''),
+    start:{dateTime:s.toISOString()},end:{dateTime:e.toISOString()},
+    reminders:{useDefault:false,overrides:[{method:'popup',minutes:0},{method:'popup',minutes:10}]},
+    extendedProperties:{private:{central:'lembretes'}}};
+}
+async function calUpsert(i){
+  const id=evId(i.key), body=JSON.stringify({...evento(i),id});
+  let r=await api(`${CAL}/${id}`,{method:'PUT',headers:{'Content-Type':'application/json'},body});
+  if(r.status===404)r=await api(CAL,{method:'POST',headers:{'Content-Type':'application/json'},body});
+  return r.ok;
+}
+async function calDel(key){const r=await api(`${CAL}/${evId(key)}`,{method:'DELETE'});return r.ok||r.status===404||r.status===410;}
+
+async function sync(quieto){
+  if(syncing)return; syncing=true; $('#btnSync').disabled=true;
+  try{
+    if(!quieto)await ensureToken(); else if(!token){return;}
+    setStatus('Lendo o Drive…');
+    const folder=await pasta();
+    const lr=await api('https://www.googleapis.com/drive/v3/files?q='+encodeURIComponent(`'${folder}' in parents and trashed=false`)+'&fields=files(id,name)&pageSize=100');
+    const files=(await lr.json()).files||[]; const novo=[]; let centralId=null, centralRemoto=null;
+    for(const f of files){
+      const m=f.name.match(/^lembretes-(.+)\.json$/); if(!m)continue;
+      const r=await api(`https://www.googleapis.com/drive/v3/files/${f.id}?alt=media`); let j=null;
+      try{j=await r.json();}catch{}
+      if(m[1]==='central'){centralId=f.id;centralRemoto=j;} else if(j)novo.push({app:m[1],itens:j.itens||[]});
+    }
+    src=novo;
+    // junta o estado da Central entre aparelhos (o mais recente de cada chave vence; feito prevalece)
+    if(centralRemoto){
+      const r=centralRemoto;
+      for(const k in (r.done||{})) if(!st.done[k]||r.done[k]>st.done[k])st.done[k]=r.done[k];
+      for(const k in (r.ate||{})) if(!st.ate[k])st.ate[k]=r.ate[k];
+      const ids=new Set(st.manual.map(m=>m.id)); (r.manual||[]).forEach(m=>{if(!ids.has(m.id))st.manual.push(m);});
+      st.cal={...(r.cal||{}),...st.cal};
+    }
+    // limpa estado de itens que não existem mais
+    const all=todos(), keys=new Set(all.map(i=>i.key));
+    for(const mp of [st.done,st.ate])for(const k in mp)if(!keys.has(k))delete mp[k];
+    // Agenda
+    setStatus('Atualizando a Agenda…'); let n=0;
+    for(const i of all){
+      const sig=i.due?`${i.titulo}|${i.due.toISOString()}|${i.privado?1:0}`:null, has=st.cal[i.key];
+      if(!i.done&&sig&&i.due>new Date(+new Date()-864e5)){ if(has!==sig&&await calUpsert(i)){st.cal[i.key]=sig;n++;} }
+      else if(has){ if(await calDel(i.key)){delete st.cal[i.key];n++;} }
+    }
+    for(const k in st.cal)if(!keys.has(k)&&await calDel(k)){delete st.cal[k];}
+    await gravar(folder,'lembretes-central.json',{app:'central',atualizado:new Date().toISOString(),itens:[],manual:st.manual,done:st.done,ate:st.ate,cal:st.cal},centralId);
+    dirty=false; sv('lem_state',st); sv('lem_src',src); sv('lem_last',Date.now());
+    setStatus('Sincronizado às '+new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})+(n?` · ${n} na Agenda`:''));
+    render();
+  }catch(err){setStatus('⚠️ '+(err.message||err));}
+  finally{syncing=false;$('#btnSync').disabled=false;}
+}
+$('#btnSync').onclick=()=>sync(false);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&token)sync(true);});
+
+/* ---------- avisos do aplicativo ---------- */
+const avisados=new Set(ld('lem_avisados',[]));
+async function avisos(){
+  if(!('Notification' in window)||Notification.permission!=='granted')return;
+  const now=new Date(); let mudou=false;
+  for(const i of todos()){
+    if(i.done||!i.due||i.due>now||now-i.due>2*36e5)continue;
+    const k=i.key+'|'+i.due.toISOString(); if(avisados.has(k))continue;
+    avisados.add(k);mudou=true;
+    const reg=await navigator.serviceWorker.getRegistration();
+    const o={body:i.privado?'':(i.detalhe||(APPS[i.app]||{n:i.app}).n),tag:k,icon:'icon-192.png'};
+    const tit='🔔 '+(i.privado?'Lembrete':i.titulo);
+    reg?reg.showNotification(tit,o):new Notification(tit,o);
+  }
+  if(mudou)sv('lem_avisados',[...avisados].slice(-300));
+}
+setInterval(()=>{avisos();render();},30000);
+
+if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
+render();avisos();
+</script>
+</body>
+</html>
