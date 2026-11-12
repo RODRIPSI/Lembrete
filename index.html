@@ -50,6 +50,10 @@ input,select,textarea{width:100%;font:inherit;color:var(--txt);background:var(--
 .sw{width:44px;height:44px;border-radius:50%;padding:0;border:2px solid var(--line)}
 .sw.on{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold)}
 .cor{display:flex;align-items:center;gap:10px;margin:6px 0}.cor span{flex:1}.cor input{width:54px;height:34px;padding:2px}
+#selbar{display:none;position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--card);border-top:1px solid var(--line);padding:10px 14px calc(10px + env(safe-area-inset-bottom));gap:8px;align-items:center}
+#selbar.on{display:flex}#selbar span{flex:1;font-size:14px}
+.selc{padding:2px 6px 0 0}.selc input{width:22px;height:22px;accent-color:var(--gold)}
+.ctt{display:flex;align-items:center;gap:8px;margin:4px 0;font-size:14px}.ctt span{flex:1}
 details summary{cursor:pointer;color:var(--mut);margin:18px 0 8px;font-size:13px}
 </style>
 </head>
@@ -57,6 +61,7 @@ details summary{cursor:pointer;color:var(--mut);margin:18px 0 8px;font-size:13px
 <header>
   <div class="top">
     <h1><img src="icon-96.png" alt="" style="width:26px;height:26px;vertical-align:-6px;margin-right:6px">Central de Lembretes</h1>
+    <button id="btnZap">Enviar</button>
     <button id="btnSync" class="gold">Sincronizar</button>
     <button id="btnCfg" aria-label="Configurações">⚙️</button>
   </div>
@@ -65,6 +70,7 @@ details summary{cursor:pointer;color:var(--mut);margin:18px 0 8px;font-size:13px
 </header>
 <main id="lista"></main>
 <button id="fab" class="gold" aria-label="Novo lembrete">＋</button>
+<div id="selbar"><span id="selN">0 selecionados</span><button id="selHoje">Hoje</button><button id="selCancel">Cancelar</button><button id="selGo" class="gold">Continuar</button></div>
 
 <dialog id="dNovo">
   <b id="dNovoT">Novo lembrete</b>
@@ -73,6 +79,16 @@ details summary{cursor:pointer;color:var(--mut);margin:18px 0 8px;font-size:13px
   <label>Quando (opcional)</label><input id="nQuando" type="datetime-local">
   <label><input id="nPriv" type="checkbox" style="width:auto"> Privado (a Agenda mostra só "Lembrete")</label>
   <div class="dlg-acts"><button id="nCancel">Cancelar</button><button id="nSave" class="gold">Salvar</button></div>
+</dialog>
+
+<dialog id="dZap">
+  <b>Enviar por WhatsApp</b>
+  <label>Para quem</label>
+  <select id="zDest"></select>
+  <label>Mensagem (você pode editar)</label>
+  <textarea id="zMsg" rows="10"></textarea>
+  <p class="small" id="zAviso"></p>
+  <div class="dlg-acts"><button id="zCancel">Voltar</button><button id="zGo" class="gold">Abrir WhatsApp</button></div>
 </dialog>
 
 <dialog id="dAdiar">
@@ -98,6 +114,10 @@ details summary{cursor:pointer;color:var(--mut);margin:18px 0 8px;font-size:13px
   <label>Cor de cada app</label>
   <div id="cores"></div>
   <button id="cReset" style="margin-top:6px;font-size:13px">Restaurar cores dos apps</button>
+  <label>Contatos do WhatsApp</label>
+  <div id="contatos"></div>
+  <div style="display:flex;gap:6px;margin-top:6px"><input id="kNome" placeholder="Nome"><input id="kTel" placeholder="DDD + número" inputmode="tel"></div>
+  <button id="kAdd" style="margin-top:6px;font-size:13px">Adicionar contato</button>
   <label>Aviso do aplicativo</label>
   <button id="cNotif">Ativar notificações</button>
   <div class="dlg-acts"><button id="cCancel">Fechar</button><button id="cSave" class="gold">Salvar</button></div>
@@ -119,10 +139,10 @@ const ld=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return 
 const sv=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 
 let cfg=ld('lem_cfg',{clientId:'',consent:false});
-cfg.cores=cfg.cores||{};
+cfg.cores=cfg.cores||{};cfg.contatos=cfg.contatos||[];
 let st=ld('lem_state',{done:{},ate:{},cal:{},manual:[]});   // estado da Central
 let src=ld('lem_src',[]);                                    // itens vindos dos apps
-let filtro='todos', token=null, tokenExp=0, tc=null, dirty=false, syncing=false, adiarKey=null, editId=null;
+let selMode=false, sel=new Set(), filtro='todos', token=null, tokenExp=0, tc=null, dirty=false, syncing=false, adiarKey=null, editId=null;
 
 /* ---------- datas ---------- */
 function parseQ(q){
@@ -183,13 +203,13 @@ function render(){
   if(!h)h='<div class="empty">Nenhum lembrete pendente 🎉</div>';
   const fe=vis.filter(i=>i.done).slice(0,30);
   if(fe.length)h+=`<details><summary>Feitos (${fe.length})</summary>${fe.map(i=>card(i,true)).join('')}</details>`;
-  $('#lista').innerHTML=h;
+  $('#lista').innerHTML=h; updSel();
 }
 function card(i,feito){
   const a=appInfo(i.app), late=!feito&&i.due&&i.due<new Date();
   const adiado=st.ate[i.key]?' · adiado':'';
   return `<div class="item ${late?'late':''}" style="--c:${a.c}">
-    <div class="row"><div class="tit">${esc(i.titulo)}</div></div>
+    <div class="row">${selMode&&!feito?`<label class="selc"><input type="checkbox" data-sel="${esc(i.key)}" ${sel.has(i.key)?'checked':''}></label>`:''}<div class="tit">${esc(i.titulo)}</div></div>
     <div class="meta"><span class="tag">${esc(a.n)}</span>${i.due?esc(fmt(i.due))+adiado:'sem data'}${i.categoria?' · '+esc(i.categoria):''}</div>
     ${i.detalhe?`<div class="det">${esc(i.detalhe)}</div>`:''}
     <div class="acts">
@@ -240,8 +260,46 @@ $('#nSave').onclick=()=>{
   $('#dNovo').close();persist();
 };
 
+/* ---------- WhatsApp ---------- */
+function updSel(){$('#selbar').classList.toggle('on',selMode);$('#selN').textContent=sel.size+(sel.size===1?' selecionado':' selecionados');document.body.style.paddingBottom=selMode?'150px':'';}
+function sairSel(){selMode=false;sel.clear();render();}
+$('#btnZap').onclick=()=>{selMode=true;sel.clear();render();};
+$('#selCancel').onclick=sairSel;
+$('#selHoje').onclick=()=>{const f=new Date(),t1=new Date(f.getFullYear(),f.getMonth(),f.getDate()+1);todos().filter(i=>!i.done&&i.due&&i.due<t1).forEach(i=>sel.add(i.key));render();};
+document.addEventListener('change',e=>{const c=e.target.closest('input[data-sel]');if(!c)return;c.checked?sel.add(c.dataset.sel):sel.delete(c.dataset.sel);updSel();});
+function montarMsg(){
+  const itens=todos().filter(i=>sel.has(i.key)).sort((a,b)=>(a.due||9e15)-(b.due||9e15));
+  const hoje=new Date().toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long'});
+  let m='*Lembretes — '+hoje+'*\n';
+  itens.forEach(i=>{m+='\n• '+(i.due?fmt(i.due)+' — ':'')+(i.privado?'Lembrete privado':i.titulo)+' ('+appInfo(i.app).n+')'+(i.detalhe&&!i.privado?'\n   '+i.detalhe:'');});
+  return {m,priv:itens.some(i=>i.privado)};
+}
+$('#selGo').onclick=()=>{
+  if(!sel.size){alert('Marque pelo menos um lembrete.');return;}
+  const r=montarMsg();$('#zMsg').value=r.m;
+  $('#zAviso').textContent=r.priv?'Lembretes privados saem só como "Lembrete privado". Se quiser mais detalhes, edite o texto acima.':'';
+  $('#zDest').innerHTML='<option value="">Escolher no WhatsApp</option>'+cfg.contatos.map((c,k)=>`<option value="${k}">${esc(c.n)}</option>`).join('');
+  $('#dZap').showModal();
+};
+$('#zCancel').onclick=()=>$('#dZap').close();
+$('#zGo').onclick=()=>{
+  const k=$('#zDest').value,num=k===''?'':cfg.contatos[+k].t;
+  window.open('https://wa.me/'+num+'?text='+encodeURIComponent($('#zMsg').value),'_blank');
+  $('#dZap').close();sairSel();
+};
+function montarContatos(){
+  $('#contatos').innerHTML=cfg.contatos.length?cfg.contatos.map((c,k)=>`<div class="ctt"><span>${esc(c.n)} · ${esc(c.t)}</span><button data-kdel="${k}">Remover</button></div>`).join(''):'<p class="small">Nenhum contato salvo. Sem contato, você escolhe a pessoa dentro do WhatsApp.</p>';
+}
+$('#kAdd').onclick=()=>{
+  const n=$('#kNome').value.trim();let t=$('#kTel').value.replace(/\D/g,'');
+  if(!n||t.length<10){alert('Informe o nome e o número com DDD.');return;}
+  if(t.length<=11)t='55'+t;
+  cfg.contatos.push({n,t});sv('lem_cfg',cfg);$('#kNome').value='';$('#kTel').value='';montarContatos();
+};
+document.addEventListener('click',e=>{const b=e.target.closest('[data-kdel]');if(!b)return;cfg.contatos.splice(+b.dataset.kdel,1);sv('lem_cfg',cfg);montarContatos();});
+
 /* ---------- configurações ---------- */
-$('#btnCfg').onclick=()=>{montarCores();$('#cClient').value=cfg.clientId||'';$('#dCfg').showModal();};
+$('#btnCfg').onclick=()=>{montarCores();montarContatos();$('#cClient').value=cfg.clientId||'';$('#dCfg').showModal();};
 $('#cCancel').onclick=()=>$('#dCfg').close();
 $('#cSave').onclick=()=>{cfg.clientId=$('#cClient').value.trim();sv('lem_cfg',cfg);tc=null;$('#dCfg').close();};
 $('#cNotif').onclick=async()=>{
