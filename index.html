@@ -8,19 +8,23 @@
 <link rel="icon" href="icon-192.png">
 <title>Central de Lembretes</title>
 <style>
-:root{--bg:#0b1220;--card:#131c30;--line:#22304d;--gold:#d4af37;--txt:#e8ecf4;--mut:#8b97b1;--red:#e5534b;--grn:#3ecf8e}
+:root,[data-tema=noite]{--bg:#0b1220;--card:#131c30;--line:#22304d;--gold:#d4af37;--txt:#e8ecf4;--mut:#8b97b1;--red:#e5534b;--grn:#3ecf8e;--onacc:#1a1405}
+[data-tema=vinho]{--bg:#120808;--card:#1e1010;--line:#3a1c1c;--gold:#d4af37;--txt:#f3e9e6;--mut:#a58a86;--red:#ff5a4d;--grn:#3ecf8e;--onacc:#1a1405}
+[data-tema=claro]{--bg:#f6f4ee;--card:#ffffff;--line:#ddd8c8;--gold:#9a7b12;--txt:#1d2433;--mut:#6b7385;--red:#c0392b;--grn:#1f9d63;--onacc:#ffffff}
+[data-tema=floresta]{--bg:#08140f;--card:#10241b;--line:#1f3d2f;--gold:#c9b458;--txt:#e6f1ea;--mut:#86a596;--red:#e5534b;--grn:#5fe0a0;--onacc:#14200f}
+[data-tema=violeta]{--bg:#0f0b1a;--card:#1a1430;--line:#2e2554;--gold:#c9a8ff;--txt:#ece8f7;--mut:#9a91b8;--red:#ff6b7a;--grn:#3ecf8e;--onacc:#1a1030}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.4 system-ui,sans-serif;padding-bottom:90px}
 header{position:sticky;top:0;z-index:5;background:var(--bg);border-bottom:1px solid var(--line);padding:12px 14px}
 .top{display:flex;align-items:center;gap:8px}
 h1{font-size:19px;margin:0;flex:1;color:var(--gold);letter-spacing:.3px}
 button{font:inherit;color:var(--txt);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
-button.gold{background:var(--gold);color:#1a1405;border-color:var(--gold);font-weight:600}
+button.gold{background:var(--gold);color:var(--onacc);border-color:var(--gold);font-weight:600}
 button:disabled{opacity:.5}
 #status{font-size:12px;color:var(--mut);margin-top:6px}
 #chips{display:flex;gap:6px;overflow-x:auto;margin-top:10px;padding-bottom:2px}
 .chip{white-space:nowrap;border-radius:999px;padding:5px 11px;font-size:13px}
-.chip.on{background:var(--gold);color:#1a1405;border-color:var(--gold)}
+.chip.on{background:var(--gold);color:var(--onacc);border-color:var(--gold)}
 main{padding:6px 14px}
 h2{font-size:13px;text-transform:uppercase;letter-spacing:1px;color:var(--mut);margin:20px 0 8px}
 h2.late{color:var(--red)}
@@ -42,6 +46,10 @@ label{display:block;font-size:13px;color:var(--mut);margin:10px 0 4px}
 input,select,textarea{width:100%;font:inherit;color:var(--txt);background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px}
 .dlg-acts{display:flex;gap:8px;justify-content:flex-end;margin-top:14px}
 .small{font-size:12.5px;color:var(--mut)}
+.tema{display:flex;gap:8px;flex-wrap:wrap}
+.sw{width:44px;height:44px;border-radius:50%;padding:0;border:2px solid var(--line)}
+.sw.on{border-color:var(--gold);box-shadow:0 0 0 2px var(--gold)}
+.cor{display:flex;align-items:center;gap:10px;margin:6px 0}.cor span{flex:1}.cor input{width:54px;height:34px;padding:2px}
 details summary{cursor:pointer;color:var(--mut);margin:18px 0 8px;font-size:13px}
 </style>
 </head>
@@ -85,6 +93,11 @@ details summary{cursor:pointer;color:var(--mut);margin:18px 0 8px;font-size:13px
   <label>ID do cliente Google (o mesmo do Bloco Mágico)</label>
   <input id="cClient" placeholder="xxxx.apps.googleusercontent.com" autocapitalize="off" autocorrect="off">
   <p class="small">Use o mesmo ID do projeto "Bloco Magico" no Google Cloud, para a Central enxergar os arquivos que os outros apps gravam no Drive.</p>
+  <label>Tema</label>
+  <div class="tema" id="temas"></div>
+  <label>Cor de cada app</label>
+  <div id="cores"></div>
+  <button id="cReset" style="margin-top:6px;font-size:13px">Restaurar cores dos apps</button>
   <label>Aviso do aplicativo</label>
   <button id="cNotif">Ativar notificações</button>
   <div class="dlg-acts"><button id="cCancel">Fechar</button><button id="cSave" class="gold">Salvar</button></div>
@@ -106,6 +119,7 @@ const ld=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return 
 const sv=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 
 let cfg=ld('lem_cfg',{clientId:'',consent:false});
+cfg.cores=cfg.cores||{};
 let st=ld('lem_state',{done:{},ate:{},cal:{},manual:[]});   // estado da Central
 let src=ld('lem_src',[]);                                    // itens vindos dos apps
 let filtro='todos', token=null, tokenExp=0, tc=null, dirty=false, syncing=false, adiarKey=null, editId=null;
@@ -123,6 +137,22 @@ function fmt(d){
   if(diff===0)return 'Hoje '+hr; if(diff===1)return 'Amanhã '+hr; if(diff===-1)return 'Ontem '+hr;
   return d.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short'})+' '+hr;
 }
+
+/* ---------- tema e cores ---------- */
+const TEMAS={noite:['Noite e ouro','#0b1220','#d4af37'],vinho:['Vinho e ouro','#120808','#d4af37'],claro:['Claro','#f6f4ee','#9a7b12'],floresta:['Floresta','#08140f','#c9b458'],violeta:['Violeta','#0f0b1a','#c9a8ff']};
+function appInfo(a){const b=APPS[a]||{n:a,c:'#888888'};return {n:b.n,c:cfg.cores[a]||b.c};}
+function aplicarTema(){
+  const t=TEMAS[cfg.tema]?cfg.tema:'noite'; document.documentElement.dataset.tema=t;
+  const m=document.querySelector('meta[name=theme-color]'); if(m)m.content=TEMAS[t][1];
+}
+function montarCores(){
+  $('#temas').innerHTML=Object.entries(TEMAS).map(([k,v])=>`<button class="sw ${(cfg.tema||'noite')===k?'on':''}" data-tema="${k}" title="${v[0]}" aria-label="${v[0]}" style="background:linear-gradient(135deg,${v[1]} 50%,${v[2]} 50%)"></button>`).join('');
+  const apps=[...new Set([...Object.keys(APPS),...src.map(f=>f.app)])];
+  $('#cores').innerHTML=apps.map(a=>`<div class="cor"><span>${esc(appInfo(a).n)}</span><input type="color" data-app="${esc(a)}" value="${appInfo(a).c}"></div>`).join('');
+}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-tema]');if(!b)return;cfg.tema=b.dataset.tema;sv('lem_cfg',cfg);aplicarTema();montarCores();});
+document.addEventListener('input',e=>{const i=e.target.closest('input[data-app]');if(!i)return;cfg.cores[i.dataset.app]=i.value;sv('lem_cfg',cfg);render();});
+$('#cReset').onclick=()=>{cfg.cores={};sv('lem_cfg',cfg);montarCores();render();};
 
 /* ---------- itens ---------- */
 function todos(){
@@ -156,7 +186,7 @@ function render(){
   $('#lista').innerHTML=h;
 }
 function card(i,feito){
-  const a=APPS[i.app]||{n:i.app,c:'#888'}, late=!feito&&i.due&&i.due<new Date();
+  const a=appInfo(i.app), late=!feito&&i.due&&i.due<new Date();
   const adiado=st.ate[i.key]?' · adiado':'';
   return `<div class="item ${late?'late':''}" style="--c:${a.c}">
     <div class="row"><div class="tit">${esc(i.titulo)}</div></div>
@@ -211,7 +241,7 @@ $('#nSave').onclick=()=>{
 };
 
 /* ---------- configurações ---------- */
-$('#btnCfg').onclick=()=>{$('#cClient').value=cfg.clientId||'';$('#dCfg').showModal();};
+$('#btnCfg').onclick=()=>{montarCores();$('#cClient').value=cfg.clientId||'';$('#dCfg').showModal();};
 $('#cCancel').onclick=()=>$('#dCfg').close();
 $('#cSave').onclick=()=>{cfg.clientId=$('#cClient').value.trim();sv('lem_cfg',cfg);tc=null;$('#dCfg').close();};
 $('#cNotif').onclick=async()=>{
@@ -331,7 +361,7 @@ async function avisos(){
 setInterval(()=>{avisos();render();},30000);
 
 if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
-render();avisos();
+aplicarTema();render();avisos();
 </script>
 </body>
 </html>
