@@ -114,6 +114,10 @@ details summary{cursor:pointer;color:var(--mut);margin:18px 0 8px;font-size:13px
   <label>Cor de cada app</label>
   <div id="cores"></div>
   <button id="cReset" style="margin-top:6px;font-size:13px">Restaurar cores dos apps</button>
+  <label>Agendas do Google que aparecem aqui</label>
+  <p class="small">Os apps (Consultório, Saúde, Bloco Mágico…) já gravam seus horários na Agenda do Google. Marque as agendas que a Central deve mostrar.</p>
+  <div id="agendas"></div>
+  <button id="agLoad" style="margin-top:6px;font-size:13px">Carregar minhas agendas</button>
   <label>Contatos do WhatsApp</label>
   <div id="contatos"></div>
   <div style="display:flex;gap:6px;margin-top:6px"><input id="kNome" placeholder="Nome"><input id="kTel" placeholder="DDD + número" inputmode="tel"></div>
@@ -131,7 +135,7 @@ const APPS={
   bussola:{n:'Bússola',c:'#f0a23e'},financeiro:{n:'Financeiro',c:'#e5534b'},memoria:{n:'Memória',c:'#4fc3d9'},
   mercado:{n:'Mercado e compras',c:'#d4af37'},central:{n:'Manual',c:'#9aa3b2'}
 };
-const SCOPE='https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/calendar.events';
+const SCOPE='https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.calendarlist.readonly';
 const CAL='https://www.googleapis.com/calendar/v3/calendars/primary/events';
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -139,7 +143,7 @@ const ld=(k,d)=>{try{return JSON.parse(localStorage.getItem(k))??d}catch{return 
 const sv=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 
 let cfg=ld('lem_cfg',{clientId:'',consent:false});
-cfg.cores=cfg.cores||{};cfg.contatos=cfg.contatos||[];
+cfg.cores=cfg.cores||{};cfg.contatos=cfg.contatos||[];cfg.agendas=cfg.agendas||{};
 let st=ld('lem_state',{done:{},ate:{},cal:{},manual:[]});   // estado da Central
 let src=ld('lem_src',[]);                                    // itens vindos dos apps
 let selMode=false, sel=new Set(), filtro='todos', token=null, tokenExp=0, tc=null, dirty=false, syncing=false, adiarKey=null, editId=null;
@@ -160,6 +164,8 @@ function fmt(d){
 
 /* ---------- tema e cores ---------- */
 const TEMAS={noite:['Noite e ouro','#0b1220','#d4af37'],vinho:['Vinho e ouro','#120808','#d4af37'],claro:['Claro','#f6f4ee','#9a7b12'],floresta:['Floresta','#08140f','#c9b458'],violeta:['Violeta','#0f0b1a','#c9a8ff']};
+function regAgendas(){for(const [id,a] of Object.entries(cfg.agendas))APPS['ag:'+id]={n:a.n,c:a.c||'#4fc3d9'};}
+regAgendas();
 function appInfo(a){const b=APPS[a]||{n:a,c:'#888888'};return {n:b.n,c:cfg.cores[a]||b.c};}
 function aplicarTema(){
   const t=TEMAS[cfg.tema]?cfg.tema:'noite'; document.documentElement.dataset.tema=t;
@@ -260,6 +266,44 @@ $('#nSave').onclick=()=>{
   $('#dNovo').close();persist();
 };
 
+/* ---------- agendas do Google ---------- */
+function montarAgendas(){
+  const l=Object.entries(cfg.agendas);
+  $('#agendas').innerHTML=l.length?l.map(([id,a])=>`<label class="ctt" style="margin:4px 0"><input type="checkbox" data-ag="${esc(id)}" ${a.on?'checked':''} style="width:22px;height:22px;accent-color:var(--gold)"><span style="color:var(--txt)">${esc(a.n)}</span></label>`).join(''):'<p class="small">Nenhuma carregada ainda. Toque em "Carregar minhas agendas".</p>';
+}
+document.addEventListener('change',e=>{const c=e.target.closest('input[data-ag]');if(!c)return;cfg.agendas[c.dataset.ag].on=c.checked;sv('lem_cfg',cfg);});
+$('#agLoad').onclick=async()=>{
+  try{
+    await ensureToken();
+    const r=await api('https://www.googleapis.com/calendar/v3/users/me/calendarList?minAccessRole=reader&maxResults=100');
+    const j=await r.json();
+    (j.items||[]).forEach(c=>{
+      if(/#holiday|#contacts|#weather/.test(c.id)||c.id==='addressbook#contacts@group.v.calendar.google.com')return;
+      const nome=c.summaryOverride||c.summary||c.id, ant=cfg.agendas[c.id];
+      cfg.agendas[c.id]={n:nome,c:c.backgroundColor||'#4fc3d9',on:ant?ant.on:(!c.primary&&/consult|family|sa[uú]de|bloco|b[uú]ssola|mem[oó]ria|lembrete/i.test(nome))};
+    });
+    sv('lem_cfg',cfg);regAgendas();montarAgendas();
+  }catch(err){alert('Não consegui carregar as agendas: '+(err.message||err));}
+};
+async function lerAgendas(){
+  const out=[], de=new Date(Date.now()-864e5).toISOString(), ate=new Date(Date.now()+30*864e5).toISOString();
+  for(const [id,a] of Object.entries(cfg.agendas)){
+    if(!a.on)continue;
+    try{
+      const r=await api(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(id)}/events?timeMin=${encodeURIComponent(de)}&timeMax=${encodeURIComponent(ate)}&singleEvents=true&orderBy=startTime&maxResults=150`);
+      if(!r.ok)continue;
+      const j=await r.json();
+      const itens=(j.items||[]).filter(e=>e.status!=='cancelled'&&!(e.extendedProperties&&e.extendedProperties.private&&e.extendedProperties.private.central)).map(e=>{
+        const s=e.start||{};let q=null;
+        if(s.dateTime)q=toLocalInput(new Date(s.dateTime));else if(s.date)q=s.date;
+        return {id:e.id,titulo:e.summary||'(sem título)',detalhe:e.location||'',quando:q,link:e.htmlLink,categoria:'Agenda'};
+      });
+      out.push({app:'ag:'+id,itens});
+    }catch(err){}
+  }
+  return out;
+}
+
 /* ---------- WhatsApp ---------- */
 function updSel(){$('#selbar').classList.toggle('on',selMode);$('#selN').textContent=sel.size+(sel.size===1?' selecionado':' selecionados');document.body.style.paddingBottom=selMode?'150px':'';}
 function sairSel(){selMode=false;sel.clear();render();}
@@ -299,7 +343,7 @@ $('#kAdd').onclick=()=>{
 document.addEventListener('click',e=>{const b=e.target.closest('[data-kdel]');if(!b)return;cfg.contatos.splice(+b.dataset.kdel,1);sv('lem_cfg',cfg);montarContatos();});
 
 /* ---------- configurações ---------- */
-$('#btnCfg').onclick=()=>{montarCores();montarContatos();$('#cClient').value=cfg.clientId||'';$('#dCfg').showModal();};
+$('#btnCfg').onclick=()=>{montarCores();montarContatos();montarAgendas();$('#cClient').value=cfg.clientId||'';$('#dCfg').showModal();};
 $('#cCancel').onclick=()=>$('#dCfg').close();
 $('#cSave').onclick=()=>{cfg.clientId=$('#cClient').value.trim();sv('lem_cfg',cfg);tc=null;$('#dCfg').close();};
 $('#cNotif').onclick=async()=>{
@@ -370,7 +414,7 @@ async function sync(quieto){
       try{j=await r.json();}catch{}
       if(m[1]==='central'){centralId=f.id;centralRemoto=j;} else if(j)novo.push({app:m[1],itens:j.itens||[]});
     }
-    src=novo;
+    regAgendas(); setStatus('Lendo as agendas…'); src=novo.concat(await lerAgendas());
     // junta o estado da Central entre aparelhos (o mais recente de cada chave vence; feito prevalece)
     if(centralRemoto){
       const r=centralRemoto;
@@ -385,6 +429,7 @@ async function sync(quieto){
     // Agenda
     setStatus('Atualizando a Agenda…'); let n=0;
     for(const i of all){
+      if(i.app.startsWith('ag:'))continue;
       const sig=i.due?`${i.titulo}|${i.due.toISOString()}|${i.privado?1:0}`:null, has=st.cal[i.key];
       if(!i.done&&sig&&i.due>new Date(+new Date()-864e5)){ if(has!==sig&&await calUpsert(i)){st.cal[i.key]=sig;n++;} }
       else if(has){ if(await calDel(i.key)){delete st.cal[i.key];n++;} }
