@@ -11,7 +11,7 @@
 :root,[data-tema=noite]{--bg:#0b1220;--card:#131c30;--line:#22304d;--gold:#d4af37;--txt:#e8ecf4;--mut:#8b97b1;--red:#e5534b;--grn:#3ecf8e;--onacc:#1a1405}
 [data-tema=vinho]{--bg:#120808;--card:#1e1010;--line:#3a1c1c;--gold:#d4af37;--txt:#f3e9e6;--mut:#a58a86;--red:#ff5a4d;--grn:#3ecf8e;--onacc:#1a1405}
 [data-tema=claro]{--bg:#f6f4ee;--card:#ffffff;--line:#ddd8c8;--gold:#9a7b12;--txt:#1d2433;--mut:#6b7385;--red:#c0392b;--grn:#1f9d63;--onacc:#ffffff}
-[data-tema=floresta]{--bg:#08140f;--card:#10241b;--line:#1f3d2f;--gold:#c9b458;--txt:#e6f1ea;--mut:#86a596;--red:#e5534b;--grn:#5fe0a0;--onacc:#14200f}
+[data-tema=floresta]{--bg:#06130e;--card:#0f2a20;--line:#1f4a39;--gold:#e0b84a;--txt:#e6f1ea;--mut:#86a596;--red:#e5534b;--grn:#5fe0a0;--onacc:#14200f}
 [data-tema=violeta]{--bg:#0f0b1a;--card:#1a1430;--line:#2e2554;--gold:#c9a8ff;--txt:#ece8f7;--mut:#9a91b8;--red:#ff6b7a;--grn:#3ecf8e;--onacc:#1a1030}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background:var(--bg);color:var(--txt);font:16px/1.4 system-ui,sans-serif;padding-bottom:90px}
@@ -58,12 +58,41 @@ input,select,textarea{width:100%;font:inherit;color:var(--txt);background:var(--
 .selc{padding:2px 6px 0 0}.selc input{width:22px;height:22px;accent-color:var(--gold)}
 .ctt{display:flex;align-items:center;gap:8px;margin:4px 0;font-size:14px}.ctt span{flex:1}
 details summary{cursor:pointer;color:var(--mut);margin:18px 0 8px;font-size:13px}
+
+body{background:radial-gradient(120% 60% at 50% 0%,color-mix(in srgb,var(--gold) 16%,var(--bg)) 0%,var(--bg) 62%) no-repeat,var(--bg);background-attachment:fixed}
+header{position:static;background:transparent;border:0;padding:14px 14px 4px;position:relative}
+#btnMenu{position:absolute;left:14px;top:14px;width:46px;height:46px;border-radius:50%;padding:0;font-size:20px;border:2px solid var(--gold);background:color-mix(in srgb,var(--bg) 70%,transparent);color:var(--gold)}
+.hero{text-align:center;padding:2px 50px 0}
+.hero img{width:64px;height:64px;filter:drop-shadow(0 0 12px color-mix(in srgb,var(--gold) 60%,transparent))}
+h1{font:600 28px/1.1 Georgia,'Times New Roman',serif;text-align:center;color:var(--gold);margin:4px 0 2px;text-shadow:0 2px 10px #0008}
+.sub{margin:0;color:var(--txt);opacity:.9;font-size:15px}
+.top{justify-content:center;margin-top:16px}
+.top button{border-radius:999px;border:2px solid var(--gold);background:color-mix(in srgb,var(--bg) 70%,transparent);padding:10px 18px;font-weight:600;box-shadow:0 0 12px color-mix(in srgb,var(--gold) 28%,transparent)}
+.top button.gold{background:linear-gradient(180deg,color-mix(in srgb,var(--gold) 70%,#fff),var(--gold));color:var(--onacc)}
+#status{text-align:center;font-size:13.5px;margin-top:10px}
+#status::before{content:"G";font-weight:700;margin-right:7px;font-size:16px;background:conic-gradient(#ea4335 0 25%,#fbbc05 0 50%,#34a853 0 75%,#4285f4 0);-webkit-background-clip:text;background-clip:text;color:transparent}
+#abas{margin-top:14px}
+.aba{border-radius:16px;padding:12px 6px;font-size:16px;border:2px solid color-mix(in srgb,var(--gold) 45%,var(--line));background:color-mix(in srgb,var(--bg) 60%,transparent)}
+.aba.on{box-shadow:0 0 14px color-mix(in srgb,var(--gold) 55%,transparent)}
+.chip{padding:8px 18px;font-size:15px;border-color:color-mix(in srgb,var(--gold) 40%,var(--line))}
+#chips{padding-bottom:10px;border-bottom:1px solid var(--line)}
+h2{display:flex;align-items:center;gap:10px;font-size:19px;text-transform:none;letter-spacing:0;color:var(--gold);margin:18px 0 10px}
+h2::after{content:"";flex:1;height:1px;background:currentColor;opacity:.55}
+h2.late{color:var(--red)}
+.item{border:1.5px solid color-mix(in srgb,var(--gold) 65%,transparent);border-left-width:1.5px;border-radius:18px;padding:14px;margin-bottom:12px;background:linear-gradient(135deg,color-mix(in srgb,var(--card) 92%,#fff),var(--card));box-shadow:0 0 16px color-mix(in srgb,var(--gold) 28%,transparent),inset 0 0 18px color-mix(in srgb,var(--gold) 8%,transparent)}
+.item.late{border-color:var(--red);box-shadow:0 0 16px color-mix(in srgb,var(--red) 50%,transparent)}
+.ico{font-size:26px;line-height:1;margin-right:4px;filter:saturate(.8)}
+.tit{font-size:19px;font-family:Georgia,serif;font-weight:600}
+.tag{border-radius:999px;padding:3px 12px;font-size:13px;color:#fff}
+.acts button{border-radius:999px;padding:8px 14px}
+#fab{border-radius:50%;box-shadow:0 0 18px color-mix(in srgb,var(--gold) 55%,transparent)}
 </style>
 </head>
 <body>
 <header>
+  <button id="btnMenu" aria-label="Menu">☰</button>
+  <div class="hero"><img src="icon-192.png" alt=""><h1>Central de Lembretes</h1><p class="sub">Seus lembretes em um só lugar</p></div>
   <div class="top">
-    <h1><img src="icon-96.png" alt="" style="width:26px;height:26px;vertical-align:-6px;margin-right:6px">Central de Lembretes</h1>
     <button id="btnZap">Enviar</button>
     <button id="btnSync" class="gold">Sincronizar</button>
     <button id="btnCfg" aria-label="Configurações">⚙️</button>
@@ -179,11 +208,11 @@ function regAgendas(){for(const [id,a] of Object.entries(cfg.agendas))APPS['ag:'
 regAgendas();
 function appInfo(a){const b=APPS[a]||{n:a,c:'#888888'};return {n:b.n,c:cfg.cores[a]||b.c};}
 function aplicarTema(){
-  const t=TEMAS[cfg.tema]?cfg.tema:'noite'; document.documentElement.dataset.tema=t;
+  const t=TEMAS[cfg.tema]?cfg.tema:'floresta'; document.documentElement.dataset.tema=t;
   const m=document.querySelector('meta[name=theme-color]'); if(m)m.content=TEMAS[t][1];
 }
 function montarCores(){
-  $('#temas').innerHTML=Object.entries(TEMAS).map(([k,v])=>`<button class="sw ${(cfg.tema||'noite')===k?'on':''}" data-tema="${k}" title="${v[0]}" aria-label="${v[0]}" style="background:linear-gradient(135deg,${v[1]} 50%,${v[2]} 50%)"></button>`).join('');
+  $('#temas').innerHTML=Object.entries(TEMAS).map(([k,v])=>`<button class="sw ${(cfg.tema||'floresta')===k?'on':''}" data-tema="${k}" title="${v[0]}" aria-label="${v[0]}" style="background:linear-gradient(135deg,${v[1]} 50%,${v[2]} 50%)"></button>`).join('');
   const apps=[...new Set([...Object.keys(APPS),...src.map(f=>f.app)])];
   $('#cores').innerHTML=apps.map(a=>`<div class="cor"><span>${esc(appInfo(a).n)}</span><input type="color" data-app="${esc(a)}" value="${appInfo(a).c}"></div>`).join('');
 }
@@ -207,7 +236,7 @@ function render(){
   const todosI=todos(), now=new Date(), ehSes=i=>!!i.sessao;
   const nS=todosI.filter(i=>!i.done&&ehSes(i)).length, nL=todosI.filter(i=>!i.done&&!ehSes(i)).length;
   if(!cfg.sessoesHoje&&aba==='hoje')aba='lembretes';
-  $('#abas').innerHTML=[['lembretes','Lembretes',nL]].concat(cfg.sessoesHoje?[['hoje','Sessões de hoje',nS]]:[]).map(([k,n,c])=>`<button class="aba ${aba===k?'on':''}" data-aba="${k}">${n} ${c}</button>`).join('');
+  $('#abas').innerHTML=[['lembretes','🔔 Lembretes',nL]].concat(cfg.sessoesHoje?[['hoje','📅 Sessões de hoje',nS]]:[]).map(([k,n,c])=>`<button class="aba ${aba===k?'on':''}" data-aba="${k}">${n} ${c}</button>`).join('');
   const all=todosI.filter(i=>(aba==='hoje')===ehSes(i));
   $('#fab').style.display=aba==='hoje'?'none':'';
   const apps=[...new Set(all.map(i=>i.app))];
@@ -222,7 +251,7 @@ function render(){
            ['Próximos',pend.filter(i=>i.due&&i.due>=t2)],
            ['Sem data',pend.filter(i=>!i.due)]];
   let h='';
-  for(const [t,l,c] of G) if(l.length) h+=`<h2 class="${c||''}">${t} · ${l.length}</h2>`+l.map(card).join('');
+  for(const [t,l,c] of G) if(l.length) h+=`<h2 class="${c||''}">${c==='late'?'⏰ ':''}${t} · ${l.length}</h2>`+l.map(card).join('');
   if(!h)h=aba==='hoje'?'<div class="empty">Nenhuma sessão hoje na agenda Consultório.<br>Toque em Sincronizar para atualizar.</div>':'<div class="empty">Nenhum lembrete pendente 🎉</div>';
   const fe=vis.filter(i=>i.done).slice(0,30);
   if(fe.length)h+=`<details><summary>Feitos (${fe.length})</summary>${fe.map(i=>card(i,true)).join('')}</details>`;
@@ -232,7 +261,7 @@ function card(i,feito){
   const a=appInfo(i.app), late=!feito&&!i.sessao&&i.due&&i.due<new Date();
   const adiado=st.ate[i.key]?' · adiado':'';
   return `<div class="item ${late?'late':''}" style="--c:${a.c}">
-    <div class="row">${selMode&&!feito?`<label class="selc"><input type="checkbox" data-sel="${esc(i.key)}" ${sel.has(i.key)?'checked':''}></label>`:''}<div class="tit">${esc(i.titulo)}</div></div>
+    <div class="row"><div class="ico">${i.sessao||i.app.startsWith('ag:')?'📅':'🔔'}</div>${selMode&&!feito?`<label class="selc"><input type="checkbox" data-sel="${esc(i.key)}" ${sel.has(i.key)?'checked':''}></label>`:''}<div class="tit">${esc(i.titulo)}</div></div>
     <div class="meta"><span class="tag">${esc(a.n)}</span>${i.due?esc(fmt(i.due))+adiado:'sem data'}${i.categoria?' · '+esc(i.categoria):''}</div>
     ${i.detalhe?`<div class="det">${esc(i.detalhe)}</div>`:''}
     <div class="acts">
@@ -366,6 +395,7 @@ $('#kAdd').onclick=()=>{
 document.addEventListener('click',e=>{const b=e.target.closest('[data-kdel]');if(!b)return;cfg.contatos.splice(+b.dataset.kdel,1);sv('lem_cfg',cfg);montarContatos();});
 
 /* ---------- configurações ---------- */
+$('#btnMenu').onclick=()=>$('#btnCfg').click();
 $('#btnCfg').onclick=()=>{$('#cDrive').checked=!!cfg.driveApps;$('#cSes').checked=!!cfg.sessoesHoje;montarCores();montarContatos();montarAgendas();$('#cClient').value=cfg.clientId||'';$('#dCfg').showModal();};
 $('#cCancel').onclick=()=>$('#dCfg').close();
 $('#cSave').onclick=()=>{cfg.clientId=$('#cClient').value.trim();sv('lem_cfg',cfg);tc=null;$('#dCfg').close();};
