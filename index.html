@@ -152,6 +152,7 @@ const sv=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 let cfg=ld('lem_cfg',{clientId:'',consent:false});
 cfg.cores=cfg.cores||{};cfg.contatos=cfg.contatos||[];cfg.agendas=cfg.agendas||{};
 if(!cfg.migr2){for(const a of Object.values(cfg.agendas))a.on=/lembret/i.test(a.n);if(cfg.sessoesHoje===undefined)cfg.sessoesHoje=true;cfg.migr2=true;sv('lem_cfg',cfg);}
+if(!cfg.migr3){for(const a of Object.values(cfg.agendas))a.on=false;cfg.driveApps=false;cfg.migr3=true;sv('lem_cfg',cfg);}
 if(cfg.sessoesHoje===undefined)cfg.sessoesHoje=true;
 let st=ld('lem_state',{done:{},ate:{},cal:{},manual:[]});   // estado da Central
 let src=ld('lem_src',[]);                                    // itens vindos dos apps
@@ -197,7 +198,7 @@ function todos(){
     const key=app+':'+it.id, q=st.ate[key]||it.quando;
     out.push({...it,app,key,due:parseQ(q),orig:parseQ(it.quando),done:!!st.done[key]});
   };
-  src.forEach(f=>{if(!f.app.startsWith('ag:')&&!cfg.driveApps)return;(f.itens||[]).forEach(it=>add(it,f.app));});
+  src.forEach(f=>{const ag=f.app.startsWith('ag:');if(!ag&&!cfg.driveApps)return;(f.itens||[]).forEach(it=>{if(ag&&!it.sessao){const a=cfg.agendas[f.app.slice(3)];if(!a||!a.on)return;}add(it,f.app);});});
   st.manual.forEach(it=>add(it,'central'));
   return out;
 }
