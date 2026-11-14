@@ -91,7 +91,7 @@ h2.late{color:var(--red)}
 <body>
 <header>
   <button id="btnMenu" aria-label="Menu">☰</button>
-  <div class="hero"><img src="icon-192.png" alt=""><h1>Central de Lembretes</h1><p class="sub">Seus lembretes em um só lugar</p></div>
+  <div class="hero"><img src="icon-192.png" alt=""><h1>Central de Lembretes</h1><p class="sub">Seus lembretes em um só lugar · v5</p></div>
   <div class="top">
     <button id="btnZap">Enviar</button>
     <button id="btnSync" class="gold">Sincronizar</button>
@@ -516,7 +516,7 @@ async function avisos(){
 }
 setInterval(()=>{avisos();render();},30000);
 
-if('serviceWorker' in navigator)navigator.serviceWorker.register('sw.js');
+if('serviceWorker' in navigator){let jaRec=!!navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(jaRec&&!sessionStorage.lemRec){sessionStorage.lemRec=1;location.reload();}jaRec=true;});navigator.serviceWorker.register('sw.js').then(r=>r.update()).catch(()=>{});}
 aplicarTema();render();avisos();
 </script>
 </body>
