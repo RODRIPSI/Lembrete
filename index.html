@@ -80,6 +80,7 @@ details summary{cursor:pointer;color:var(--mut);margin:18px 0 8px;font-size:13px
   <b id="dNovoT">Novo lembrete</b>
   <label>O que lembrar</label><input id="nTit">
   <label>Detalhe (opcional)</label><textarea id="nDet" rows="2"></textarea>
+  <label>Aplicativo</label><select id="nApp"></select>
   <label>Quando (opcional)</label><input id="nQuando" type="datetime-local">
   <label><input id="nPriv" type="checkbox" style="width:auto"> Privado (a Agenda mostra só "Lembrete")</label>
   <div class="dlg-acts"><button id="nCancel">Cancelar</button><button id="nSave" class="gold">Salvar</button></div>
@@ -138,9 +139,9 @@ details summary{cursor:pointer;color:var(--mut);margin:18px 0 8px;font-size:13px
 <script>
 'use strict';
 const APPS={
-  consultorio:{n:'Consultório',c:'#5b8def'},saude:{n:'Saúde',c:'#3ecf8e'},bloco:{n:'Bloco Mágico',c:'#b07cf0'},
+  consultorio:{n:'Consultório',c:'#5b8def'},saude:{n:'Saúde',c:'#3ecf8e'},bloco:{n:'Entrelaços',c:'#b07cf0'},
   bussola:{n:'Bússola',c:'#f0a23e'},financeiro:{n:'Financeiro',c:'#e5534b'},memoria:{n:'Memória',c:'#4fc3d9'},
-  mercado:{n:'Mercado e compras',c:'#d4af37'},central:{n:'Manual',c:'#9aa3b2'}
+  mercado:{n:'Mercado e compras',c:'#d4af37'},central:{n:'Geral',c:'#9aa3b2'}
 };
 const SCOPE='https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/calendar.calendarlist.readonly';
 const CAL='https://www.googleapis.com/calendar/v3/calendars/primary/events';
@@ -193,13 +194,13 @@ $('#cReset').onclick=()=>{cfg.cores={};sv('lem_cfg',cfg);montarCores();render();
 /* ---------- itens ---------- */
 function todos(){
   const out=[];
-  const add=(it,app)=>{
+  const add=(it,app,show)=>{
     if(!it||!it.id||!it.titulo)return;
     const key=app+':'+it.id, q=st.ate[key]||it.quando;
-    out.push({...it,app,key,due:parseQ(q),orig:parseQ(it.quando),done:!!st.done[key]});
+    out.push({...it,app:show||app,key,due:parseQ(q),orig:parseQ(it.quando),done:!!st.done[key]});
   };
   src.forEach(f=>{const ag=f.app.startsWith('ag:');if(!ag&&!cfg.driveApps)return;(f.itens||[]).forEach(it=>{if(ag&&!it.sessao){const a=cfg.agendas[f.app.slice(3)];if(!a||!a.on)return;}add(it,f.app);});});
-  st.manual.forEach(it=>add(it,'central'));
+  st.manual.forEach(it=>add(it,'central',it.app||'central'));
   return out;
 }
 function render(){
@@ -210,7 +211,8 @@ function render(){
   const all=todosI.filter(i=>(aba==='hoje')===ehSes(i));
   $('#fab').style.display=aba==='hoje'?'none':'';
   const apps=[...new Set(all.map(i=>i.app))];
-  $('#chips').innerHTML=['todos',...apps].map(a=>`<button class="chip ${filtro===a?'on':''}" data-f="${a}">${a==='todos'?'Todos':esc((APPS[a]||{n:a}).n)}</button>`).join('');
+  const todosApps=Object.keys(APPS).filter(k=>!k.startsWith('ag:')&&(aba!=='hoje'||k==='consultorio'));
+  $('#chips').innerHTML=['todos',...(aba==='hoje'?apps:[...new Set([...todosApps,...apps])])].map(a=>`<button class="chip ${filtro===a?'on':''}" data-f="${a}">${a==='todos'?'Todos':esc((APPS[a]||{n:a}).n)}</button>`).join('');
   const vis=all.filter(i=>filtro==='todos'||i.app===filtro);
   const pend=vis.filter(i=>!i.done).sort((a,b)=>(a.due||9e15)-(b.due||9e15));
   const t0=new Date(now.getFullYear(),now.getMonth(),now.getDate()), t1=new Date(+t0+864e5), t2=new Date(+t0+2*864e5);
@@ -268,6 +270,7 @@ $('#aCancel').onclick=()=>$('#dAdiar').close();
 
 function abrirNovo(it){
   editId=it?it.id:null;
+  $('#nApp').innerHTML=Object.entries(APPS).filter(([k])=>!k.startsWith('ag:')).map(([k,v])=>`<option value="${k}">${esc(v.n)}</option>`).join('');$('#nApp').value=(it&&it.app)||'central';
   $('#dNovoT').textContent=it?'Editar lembrete':'Novo lembrete';
   $('#nTit').value=it?it.titulo:'';$('#nDet').value=it?it.detalhe||'':'';
   $('#nQuando').value=it&&it.quando?toLocalInput(parseQ(it.quando)):'';$('#nPriv').checked=!!(it&&it.privado);
@@ -277,7 +280,7 @@ $('#fab').onclick=()=>abrirNovo();
 $('#nCancel').onclick=()=>$('#dNovo').close();
 $('#nSave').onclick=()=>{
   const titulo=$('#nTit').value.trim(); if(!titulo){alert('Escreva o que lembrar.');return;}
-  const obj={id:editId||'m'+Date.now().toString(36),titulo,detalhe:$('#nDet').value.trim(),quando:$('#nQuando').value||null,privado:$('#nPriv').checked};
+  const obj={id:editId||'m'+Date.now().toString(36),titulo,detalhe:$('#nDet').value.trim(),quando:$('#nQuando').value||null,privado:$('#nPriv').checked,app:$('#nApp').value};
   if(editId){st.manual=st.manual.map(m=>m.id===editId?obj:m);delete st.ate['central:'+editId];}else st.manual.push(obj);
   $('#dNovo').close();persist();
 };
