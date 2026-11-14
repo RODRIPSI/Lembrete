@@ -21,6 +21,9 @@ h1{font-size:19px;margin:0;flex:1;color:var(--gold);letter-spacing:.3px}
 button{font:inherit;color:var(--txt);background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 12px}
 button.gold{background:var(--gold);color:var(--onacc);border-color:var(--gold);font-weight:600}
 button:disabled{opacity:.5}
+#abas{display:flex;gap:6px;margin-top:10px}
+.aba{flex:1;border-radius:10px;padding:7px 4px;font-size:14px;text-align:center}
+.aba.on{background:var(--gold);color:var(--onacc);border-color:var(--gold);font-weight:600}
 #status{font-size:12px;color:var(--mut);margin-top:6px}
 #chips{display:flex;gap:6px;overflow-x:auto;margin-top:10px;padding-bottom:2px}
 .chip{white-space:nowrap;border-radius:999px;padding:5px 11px;font-size:13px}
@@ -66,6 +69,7 @@ details summary{cursor:pointer;color:var(--mut);margin:18px 0 8px;font-size:13px
     <button id="btnCfg" aria-label="Configurações">⚙️</button>
   </div>
   <div id="status">Toque em Sincronizar para conectar ao Google.</div>
+  <div id="abas"></div>
   <div id="chips"></div>
 </header>
 <main id="lista"></main>
@@ -146,7 +150,7 @@ let cfg=ld('lem_cfg',{clientId:'',consent:false});
 cfg.cores=cfg.cores||{};cfg.contatos=cfg.contatos||[];cfg.agendas=cfg.agendas||{};
 let st=ld('lem_state',{done:{},ate:{},cal:{},manual:[]});   // estado da Central
 let src=ld('lem_src',[]);                                    // itens vindos dos apps
-let selMode=false, sel=new Set(), filtro='todos', token=null, tokenExp=0, tc=null, dirty=false, syncing=false, adiarKey=null, editId=null;
+let aba='tudo', selMode=false, sel=new Set(), filtro='todos', token=null, tokenExp=0, tc=null, dirty=false, syncing=false, adiarKey=null, editId=null;
 
 /* ---------- datas ---------- */
 function parseQ(q){
@@ -193,7 +197,11 @@ function todos(){
   return out;
 }
 function render(){
-  const all=todos(), now=new Date();
+  const todosI=todos(), now=new Date(), ehAg=i=>i.app.startsWith('ag:');
+  const nA=todosI.filter(i=>!i.done&&ehAg(i)).length, nL=todosI.filter(i=>!i.done&&!ehAg(i)).length;
+  $('#abas').innerHTML=[['tudo','Tudo',nA+nL],['agenda','Agenda',nA],['lembretes','Lembretes',nL]].map(([k,n,c])=>`<button class="aba ${aba===k?'on':''}" data-aba="${k}">${n} ${c}</button>`).join('');
+  const all=todosI.filter(i=>aba==='tudo'||(aba==='agenda')===ehAg(i));
+  $('#fab').style.display=aba==='agenda'?'none':'';
   const apps=[...new Set(all.map(i=>i.app))];
   $('#chips').innerHTML=['todos',...apps].map(a=>`<button class="chip ${filtro===a?'on':''}" data-f="${a}">${a==='todos'?'Todos':esc((APPS[a]||{n:a}).n)}</button>`).join('');
   const vis=all.filter(i=>filtro==='todos'||i.app===filtro);
@@ -206,7 +214,7 @@ function render(){
            ['Sem data',pend.filter(i=>!i.due)]];
   let h='';
   for(const [t,l,c] of G) if(l.length) h+=`<h2 class="${c||''}">${t} · ${l.length}</h2>`+l.map(card).join('');
-  if(!h)h='<div class="empty">Nenhum lembrete pendente 🎉</div>';
+  if(!h)h=aba==='agenda'?'<div class="empty">Nenhum evento nas agendas escolhidas.<br>Em ⚙️, toque em Carregar minhas agendas e marque as que quer ver.</div>':'<div class="empty">Nenhum lembrete pendente 🎉</div>';
   const fe=vis.filter(i=>i.done).slice(0,30);
   if(fe.length)h+=`<details><summary>Feitos (${fe.length})</summary>${fe.map(i=>card(i,true)).join('')}</details>`;
   $('#lista').innerHTML=h; updSel();
@@ -229,6 +237,7 @@ function persist(){sv('lem_state',st);sv('lem_src',src);dirty=true;render();if(t
 
 /* ---------- ações ---------- */
 document.addEventListener('click',e=>{
+  const ab=e.target.closest('[data-aba]'); if(ab){aba=ab.dataset.aba;filtro='todos';render();return;}
   const c=e.target.closest('.chip'); if(c){filtro=c.dataset.f;render();return;}
   const b=e.target.closest('[data-act]'); if(!b)return;
   const k=b.dataset.k, act=b.dataset.act;
