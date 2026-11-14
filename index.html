@@ -91,7 +91,7 @@ h2.late{color:var(--red)}
 <body>
 <header>
   <button id="btnMenu" aria-label="Menu">☰</button>
-  <div class="hero"><img src="icon-192.png" alt=""><h1>Central de Lembretes</h1><p class="sub">Seus lembretes em um só lugar · v5</p></div>
+  <div class="hero"><img src="icon-192.png" alt=""><h1>Central de Lembretes</h1><p class="sub">Seus lembretes em um só lugar · v6</p></div>
   <div class="top">
     <button id="btnZap">Enviar</button>
     <button id="btnSync" class="gold">Sincronizar</button>
@@ -149,11 +149,10 @@ h2.late{color:var(--red)}
   <div id="cores"></div>
   <button id="cReset" style="margin-top:6px;font-size:13px">Restaurar cores dos apps</button>
   <label>Agendas do Google que aparecem aqui</label>
-  <p class="small">Os apps (Consultório, Saúde, Bloco Mágico…) já gravam seus horários na Agenda do Google. Marque as agendas que guardam seus lembretes (por exemplo, uma agenda chamada "Lembretes"). As sessões do Consultório aparecem só na aba "Sessões de hoje".</p>
+  <p class="small">Os apps (Consultório, Saúde, Bloco Mágico…) já gravam seus horários na Agenda do Google. Marque as agendas que guardam seus lembretes (por exemplo, uma agenda chamada "Lembretes").</p>
   <div id="agendas"></div>
-  <label class="ctt" style="margin-top:10px"><input type="checkbox" id="cSes" style="width:22px;height:22px;accent-color:var(--gold)"><span style="color:var(--txt)">Mostrar as sessões de hoje (agenda Consultório)</span></label>
   <button id="agLoad" style="margin-top:6px;font-size:13px">Carregar minhas agendas</button>
-  <label class="ctt" style="margin-top:14px"><input type="checkbox" id="cDrive" style="width:22px;height:22px;accent-color:var(--gold)"><span style="color:var(--txt)">Mostrar também lembretes enviados por outros apps (pelo Drive)</span></label>
+  <label class="ctt" style="margin-top:14px"><input type="checkbox" id="cDrive" style="width:22px;height:22px;accent-color:var(--gold)"><span style="color:var(--txt)">Receber lembretes que os outros apps escrevem (Consultório, Saúde…). Pagamentos do Financeiro nunca entram.</span></label>
   <p class="small">Desligado por padrão. A Central mostra só os lembretes escritos nela e os eventos das agendas do Google.</p>
   <label>Contatos do WhatsApp</label>
   <div id="contatos"></div>
@@ -182,6 +181,7 @@ const sv=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
 let cfg=ld('lem_cfg',{clientId:'',consent:false});
 cfg.cores=cfg.cores||{};cfg.contatos=cfg.contatos||[];cfg.agendas=cfg.agendas||{};
 if(!cfg.migr2){for(const a of Object.values(cfg.agendas))a.on=/lembret/i.test(a.n);if(cfg.sessoesHoje===undefined)cfg.sessoesHoje=true;cfg.migr2=true;sv('lem_cfg',cfg);}
+cfg.sessoesHoje=false;
 if(!cfg.migr3){for(const a of Object.values(cfg.agendas))a.on=false;cfg.driveApps=false;cfg.migr3=true;sv('lem_cfg',cfg);}
 if(cfg.sessoesHoje===undefined)cfg.sessoesHoje=true;
 let st=ld('lem_state',{done:{},ate:{},cal:{},manual:[]});   // estado da Central
@@ -228,15 +228,15 @@ function todos(){
     const key=app+':'+it.id, q=st.ate[key]||it.quando;
     out.push({...it,app:show||app,key,due:parseQ(q),orig:parseQ(it.quando),done:!!st.done[key]});
   };
-  src.forEach(f=>{const ag=f.app.startsWith('ag:');if(!ag&&!cfg.driveApps)return;(f.itens||[]).forEach(it=>{if(ag&&!it.sessao){const a=cfg.agendas[f.app.slice(3)];if(!a||!a.on)return;}add(it,f.app);});});
-  st.manual.forEach(it=>add(it,'central',it.app||'central'));
+  src.forEach(f=>{const ag=f.app.startsWith('ag:');if(!ag&&(f.app==='financeiro'||!cfg.driveApps))return;(f.itens||[]).forEach(it=>{if(it.sessao||it.categoria==='Contas')return;if(ag){const a=cfg.agendas[f.app.slice(3)];if(!a||!a.on)return;}add(it,f.app);});});
+  st.manual.forEach(it=>{if(!(it.eu||(!it.app&&!it.categoria)))return;add(it,'central',it.app||'central');});
   return out;
 }
 function render(){
   const todosI=todos(), now=new Date(), ehSes=i=>!!i.sessao;
   const nS=todosI.filter(i=>!i.done&&ehSes(i)).length, nL=todosI.filter(i=>!i.done&&!ehSes(i)).length;
-  if(!cfg.sessoesHoje&&aba==='hoje')aba='lembretes';
-  $('#abas').innerHTML=[['lembretes','🔔 Lembretes',nL]].concat(cfg.sessoesHoje?[['hoje','📅 Sessões de hoje',nS]]:[]).map(([k,n,c])=>`<button class="aba ${aba===k?'on':''}" data-aba="${k}">${n} ${c}</button>`).join('');
+  aba='lembretes';
+  $('#abas').innerHTML=[].map(([k,n,c])=>`<button class="aba ${aba===k?'on':''}" data-aba="${k}">${n} ${c}</button>`).join('');
   const all=todosI.filter(i=>(aba==='hoje')===ehSes(i));
   $('#fab').style.display=aba==='hoje'?'none':'';
   const apps=[...new Set(all.map(i=>i.app))];
@@ -309,7 +309,7 @@ $('#fab').onclick=()=>abrirNovo();
 $('#nCancel').onclick=()=>$('#dNovo').close();
 $('#nSave').onclick=()=>{
   const titulo=$('#nTit').value.trim(); if(!titulo){alert('Escreva o que lembrar.');return;}
-  const obj={id:editId||'m'+Date.now().toString(36),titulo,detalhe:$('#nDet').value.trim(),quando:$('#nQuando').value||null,privado:$('#nPriv').checked,app:$('#nApp').value};
+  const obj={id:editId||'m'+Date.now().toString(36),titulo,detalhe:$('#nDet').value.trim(),quando:$('#nQuando').value||null,privado:$('#nPriv').checked,app:$('#nApp').value,eu:1};
   if(editId){st.manual=st.manual.map(m=>m.id===editId?obj:m);delete st.ate['central:'+editId];}else st.manual.push(obj);
   $('#dNovo').close();persist();
 };
@@ -319,7 +319,6 @@ function montarAgendas(){
   const l=Object.entries(cfg.agendas).filter(([id,a])=>!/consult/i.test(a.n));
   $('#agendas').innerHTML=l.length?l.map(([id,a])=>`<label class="ctt" style="margin:4px 0"><input type="checkbox" data-ag="${esc(id)}" ${a.on?'checked':''} style="width:22px;height:22px;accent-color:var(--gold)"><span style="color:var(--txt)">${esc(a.n)}</span></label>`).join(''):'<p class="small">Nenhuma carregada ainda. Toque em "Carregar minhas agendas".</p>';
 }
-$('#cSes').addEventListener('change',e=>{cfg.sessoesHoje=e.target.checked;sv('lem_cfg',cfg);render();});
 $('#cDrive').addEventListener('change',e=>{cfg.driveApps=e.target.checked;sv('lem_cfg',cfg);render();});
 document.addEventListener('change',e=>{const c=e.target.closest('input[data-ag]');if(!c)return;cfg.agendas[c.dataset.ag].on=c.checked;sv('lem_cfg',cfg);});
 $('#agLoad').onclick=async()=>{
@@ -339,7 +338,7 @@ async function lerAgendas(){
   const out=[], agora=new Date(), ini=new Date(agora.getFullYear(),agora.getMonth(),agora.getDate()), fimHoje=new Date(+ini+864e5);
   for(const [id,a] of Object.entries(cfg.agendas)){
     const ses=/consult/i.test(a.n);
-    if(ses?!cfg.sessoesHoje:!a.on)continue;
+    if(ses||!a.on)continue;
     const de=ses?ini:new Date(+agora-864e5), ate=ses?fimHoje:new Date(+agora+30*864e5);
     try{
       const r=await api(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(id)}/events?timeMin=${encodeURIComponent(de.toISOString())}&timeMax=${encodeURIComponent(ate.toISOString())}&singleEvents=true&orderBy=startTime&maxResults=150`);
@@ -396,7 +395,7 @@ document.addEventListener('click',e=>{const b=e.target.closest('[data-kdel]');if
 
 /* ---------- configurações ---------- */
 $('#btnMenu').onclick=()=>$('#btnCfg').click();
-$('#btnCfg').onclick=()=>{$('#cDrive').checked=!!cfg.driveApps;$('#cSes').checked=!!cfg.sessoesHoje;montarCores();montarContatos();montarAgendas();$('#cClient').value=cfg.clientId||'';$('#dCfg').showModal();};
+$('#btnCfg').onclick=()=>{$('#cDrive').checked=!!cfg.driveApps;montarCores();montarContatos();montarAgendas();$('#cClient').value=cfg.clientId||'';$('#dCfg').showModal();};
 $('#cCancel').onclick=()=>$('#dCfg').close();
 $('#cSave').onclick=()=>{cfg.clientId=$('#cClient').value.trim();sv('lem_cfg',cfg);tc=null;$('#dCfg').close();};
 $('#cNotif').onclick=async()=>{
