@@ -122,6 +122,8 @@ details summary{cursor:pointer;color:var(--mut);margin:18px 0 8px;font-size:13px
   <p class="small">Os apps (Consultório, Saúde, Bloco Mágico…) já gravam seus horários na Agenda do Google. Marque as agendas que a Central deve mostrar.</p>
   <div id="agendas"></div>
   <button id="agLoad" style="margin-top:6px;font-size:13px">Carregar minhas agendas</button>
+  <label class="ctt" style="margin-top:14px"><input type="checkbox" id="cDrive" style="width:22px;height:22px;accent-color:var(--gold)"><span style="color:var(--txt)">Mostrar também lembretes enviados por outros apps (pelo Drive)</span></label>
+  <p class="small">Desligado por padrão. A Central mostra só os lembretes escritos nela e os eventos das agendas do Google.</p>
   <label>Contatos do WhatsApp</label>
   <div id="contatos"></div>
   <div style="display:flex;gap:6px;margin-top:6px"><input id="kNome" placeholder="Nome"><input id="kTel" placeholder="DDD + número" inputmode="tel"></div>
@@ -192,7 +194,7 @@ function todos(){
     const key=app+':'+it.id, q=st.ate[key]||it.quando;
     out.push({...it,app,key,due:parseQ(q),orig:parseQ(it.quando),done:!!st.done[key]});
   };
-  src.forEach(f=>(f.itens||[]).forEach(it=>add(it,f.app)));
+  src.forEach(f=>{if(!f.app.startsWith('ag:')&&!cfg.driveApps)return;(f.itens||[]).forEach(it=>add(it,f.app));});
   st.manual.forEach(it=>add(it,'central'));
   return out;
 }
@@ -280,6 +282,7 @@ function montarAgendas(){
   const l=Object.entries(cfg.agendas);
   $('#agendas').innerHTML=l.length?l.map(([id,a])=>`<label class="ctt" style="margin:4px 0"><input type="checkbox" data-ag="${esc(id)}" ${a.on?'checked':''} style="width:22px;height:22px;accent-color:var(--gold)"><span style="color:var(--txt)">${esc(a.n)}</span></label>`).join(''):'<p class="small">Nenhuma carregada ainda. Toque em "Carregar minhas agendas".</p>';
 }
+$('#cDrive').addEventListener('change',e=>{cfg.driveApps=e.target.checked;sv('lem_cfg',cfg);render();});
 document.addEventListener('change',e=>{const c=e.target.closest('input[data-ag]');if(!c)return;cfg.agendas[c.dataset.ag].on=c.checked;sv('lem_cfg',cfg);});
 $('#agLoad').onclick=async()=>{
   try{
@@ -352,7 +355,7 @@ $('#kAdd').onclick=()=>{
 document.addEventListener('click',e=>{const b=e.target.closest('[data-kdel]');if(!b)return;cfg.contatos.splice(+b.dataset.kdel,1);sv('lem_cfg',cfg);montarContatos();});
 
 /* ---------- configurações ---------- */
-$('#btnCfg').onclick=()=>{montarCores();montarContatos();montarAgendas();$('#cClient').value=cfg.clientId||'';$('#dCfg').showModal();};
+$('#btnCfg').onclick=()=>{$('#cDrive').checked=!!cfg.driveApps;montarCores();montarContatos();montarAgendas();$('#cClient').value=cfg.clientId||'';$('#dCfg').showModal();};
 $('#cCancel').onclick=()=>$('#dCfg').close();
 $('#cSave').onclick=()=>{cfg.clientId=$('#cClient').value.trim();sv('lem_cfg',cfg);tc=null;$('#dCfg').close();};
 $('#cNotif').onclick=async()=>{
