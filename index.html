@@ -131,7 +131,7 @@ const APPS={
   bussola:{n:'Bússola',c:'#f0a23e'},financeiro:{n:'Financeiro',c:'#e5534b'},memoria:{n:'Memória',c:'#4fc3d9'},
   mercado:{n:'Mercado e compras',c:'#d4af37'},central:{n:'Manual',c:'#9aa3b2'}
 };
-const SCOPE='https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/calendar.events';
+const SCOPE='https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/calendar.events';
 const CAL='https://www.googleapis.com/calendar/v3/calendars/primary/events';
 const $=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
