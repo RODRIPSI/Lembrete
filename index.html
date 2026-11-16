@@ -8,7 +8,7 @@
 <link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png">
 <title>Central de Lembretes</title>
 <style>
-:root,[data-tema=noite]{--bg:#0b1220;--card:#131c30;--line:#22304d;--gold:#d4af37;--txt:#e8ecf4;--mut:#8b97b1;--red:#e5534b;--grn:#3ecf8e;--onacc:#1a1405}
+:root,[data-tema=noite]{--bg:#0b1220;--card:#131c30;--line:#22304d;--gold:#e9bf80;--txt:#e8ecf4;--mut:#8b97b1;--red:#e5534b;--grn:#3ecf8e;--onacc:#1a1405}
 [data-tema=vinho]{--bg:#120808;--card:#1e1010;--line:#3a1c1c;--gold:#d4af37;--txt:#f3e9e6;--mut:#a58a86;--red:#ff5a4d;--grn:#3ecf8e;--onacc:#1a1405}
 [data-tema=claro]{--bg:#f6f4ee;--card:#ffffff;--line:#ddd8c8;--gold:#9a7b12;--txt:#1d2433;--mut:#6b7385;--red:#c0392b;--grn:#1f9d63;--onacc:#ffffff}
 [data-tema=floresta]{--bg:#06130e;--card:#0f2a20;--line:#1f4a39;--gold:#e0b84a;--txt:#e6f1ea;--mut:#86a596;--red:#e5534b;--grn:#5fe0a0;--onacc:#14200f}
@@ -59,51 +59,62 @@ input,select,textarea{width:100%;font:inherit;color:var(--txt);background:var(--
 .ctt{display:flex;align-items:center;gap:8px;margin:4px 0;font-size:14px}.ctt span{flex:1}
 details summary{cursor:pointer;color:var(--mut);margin:18px 0 8px;font-size:13px}
 
-body{background:radial-gradient(120% 60% at 50% 0%,color-mix(in srgb,var(--gold) 16%,var(--bg)) 0%,var(--bg) 62%) no-repeat,var(--bg);background-attachment:fixed}
-header{position:static;background:transparent;border:0;padding:14px 14px 4px;position:relative}
-#btnMenu{position:absolute;left:14px;top:14px;width:46px;height:46px;border-radius:50%;padding:0;font-size:20px;border:2px solid var(--gold);background:color-mix(in srgb,var(--bg) 70%,transparent);color:var(--gold)}
-.hero{text-align:center;padding:2px 50px 0}
-.hero img{width:64px;height:64px;filter:drop-shadow(0 0 12px color-mix(in srgb,var(--gold) 60%,transparent))}
-h1{font:600 28px/1.1 Georgia,'Times New Roman',serif;text-align:center;color:var(--gold);margin:4px 0 2px;text-shadow:0 2px 10px #0008}
-.sub{margin:0;color:var(--txt);opacity:.9;font-size:15px}
-.top{justify-content:center;margin-top:16px}
-.top button{border-radius:999px;border:2px solid var(--gold);background:color-mix(in srgb,var(--bg) 70%,transparent);padding:10px 18px;font-weight:600;box-shadow:0 0 12px color-mix(in srgb,var(--gold) 28%,transparent)}
-.top button.gold{background:linear-gradient(180deg,color-mix(in srgb,var(--gold) 70%,#fff),var(--gold));color:var(--onacc)}
-#status{text-align:center;font-size:13.5px;margin-top:10px}
-#status::before{content:"G";font-weight:700;margin-right:7px;font-size:16px;background:conic-gradient(#ea4335 0 25%,#fbbc05 0 50%,#34a853 0 75%,#4285f4 0);-webkit-background-clip:text;background-clip:text;color:transparent}
-#abas{margin-top:14px}
-.aba{border-radius:16px;padding:12px 6px;font-size:16px;border:2px solid color-mix(in srgb,var(--gold) 45%,var(--line));background:color-mix(in srgb,var(--bg) 60%,transparent)}
-.aba.on{box-shadow:0 0 14px color-mix(in srgb,var(--gold) 55%,transparent)}
-.chip{padding:8px 18px;font-size:15px;border-color:color-mix(in srgb,var(--gold) 40%,var(--line))}
-#chips{padding-bottom:10px;border-bottom:1px solid var(--line)}
-h2{display:flex;align-items:center;gap:10px;font-size:19px;text-transform:none;letter-spacing:0;color:var(--gold);margin:18px 0 10px}
-h2::after{content:"";flex:1;height:1px;background:currentColor;opacity:.55}
+body{background:radial-gradient(120% 40% at 50% 0%,color-mix(in srgb,var(--gold) 7%,var(--bg)) 0%,var(--bg) 70%) no-repeat,var(--bg)}
+header{position:static;background:transparent;border:0;padding:12px 16px 0}
+.hbar{display:flex;align-items:flex-start;justify-content:space-between}
+.hbar button{width:44px;height:44px;border:0;background:transparent;padding:0;color:var(--mut);display:grid;place-items:center}
+.hero{text-align:center;margin-top:-6px}
+.hero img{width:64px;height:64px}
+h1{font:500 30px/1.15 system-ui,sans-serif;text-align:center;color:var(--txt);margin:6px 0 4px;letter-spacing:0}
+.sub{margin:0;color:var(--mut);font-size:17px}
+#status{text-align:center;font-size:12.5px;color:var(--mut);margin-top:6px;min-height:16px}
+#tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:14px}
+.tile{display:flex;gap:10px;align-items:center;text-align:left;padding:14px 12px;border-radius:18px;border:1px solid var(--line);background:color-mix(in srgb,var(--card) 80%,transparent)}
+.tile.on{border-color:var(--gold)}
+.tile svg{width:30px;height:30px;flex:none;stroke:var(--mut)}
+.tile small{display:block;font-size:15px;color:var(--txt)}.tile b{font-size:26px;font-weight:500;line-height:1.1}
+.tile.atr{background:color-mix(in srgb,var(--red) 18%,var(--card));border-color:color-mix(in srgb,var(--red) 45%,var(--line))}.tile.atr svg{stroke:var(--red)}
+#novo{display:flex;margin:16px auto 0;border-radius:999px;padding:14px 38px;font-size:20px;font-weight:500;background:linear-gradient(180deg,color-mix(in srgb,var(--gold) 80%,#fff),var(--gold));color:var(--onacc);border:0;gap:12px;align-items:center}
+.cath{display:flex;justify-content:space-between;align-items:baseline;margin:22px 4px 10px;font-size:22px}
+.cath a{font-size:16px;color:#8fb0ff}
+#cats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding-bottom:16px;border-bottom:1px solid var(--line)}
+.cat{white-space:normal;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;min-height:76px;padding:8px 4px;border-radius:16px;font-size:15px;text-align:center;line-height:1.15;background:color-mix(in srgb,var(--card) 85%,transparent)}
+.cat svg{width:30px;height:30px;stroke:var(--mut);stroke-width:1.5;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.cat.on{background:linear-gradient(180deg,color-mix(in srgb,var(--gold) 80%,#fff),var(--gold));color:var(--onacc);border-color:var(--gold);font-weight:500}.cat.on svg{stroke:var(--onacc)}
+h2{display:flex;align-items:center;gap:10px;font-size:17px;text-transform:none;letter-spacing:0;color:var(--mut);margin:18px 0 10px}
 h2.late{color:var(--red)}
-.item{border:1.5px solid color-mix(in srgb,var(--gold) 65%,transparent);border-left-width:1.5px;border-radius:18px;padding:14px;margin-bottom:12px;background:linear-gradient(135deg,color-mix(in srgb,var(--card) 92%,#fff),var(--card));box-shadow:0 0 16px color-mix(in srgb,var(--gold) 28%,transparent),inset 0 0 18px color-mix(in srgb,var(--gold) 8%,transparent)}
-.item.late{border-color:var(--red);box-shadow:0 0 16px color-mix(in srgb,var(--red) 50%,transparent)}
-.ico{font-size:26px;line-height:1;margin-right:4px;filter:saturate(.8)}
-.tit{font-size:19px;font-family:Georgia,serif;font-weight:600}
-.tag{border-radius:999px;padding:3px 12px;font-size:13px;color:#fff}
+.item{border:1px solid var(--line);border-left:4px solid var(--c,#888);border-radius:16px;padding:14px;margin-bottom:10px;background:var(--card)}
+.item.late{border-color:var(--red);border-left-color:var(--red)}
+.tit{font-size:18px;font-weight:600}
+.tag{border-radius:999px;padding:2px 11px;font-size:12.5px;color:#fff}
 .acts button{border-radius:999px;padding:8px 14px}
-#fab{border-radius:50%;box-shadow:0 0 18px color-mix(in srgb,var(--gold) 55%,transparent)}
+.empty{padding:44px 10px 70px}.empty svg{width:96px;height:96px;stroke:var(--mut);fill:none;stroke-width:1.2;stroke-linecap:round;stroke-linejoin:round}
+.empty b{display:block;font-size:24px;font-weight:500;color:var(--txt);margin:14px 0 8px}
+#fab{display:none}
+#dMenu button{display:block;width:100%;margin-top:10px;padding:14px;font-size:17px;border-radius:14px;text-align:left}
 </style>
 </head>
 <body>
 <header>
-  <button id="btnMenu" aria-label="Menu">☰</button>
-  <div class="hero"><img src="icon-192.png" alt=""><h1>Central de Lembretes</h1><p class="sub">Seus lembretes em um só lugar · v6</p></div>
-  <div class="top">
-    <button id="btnZap">Enviar</button>
-    <button id="btnSync" class="gold">Sincronizar</button>
-    <button id="btnCfg" aria-label="Configurações">⚙️</button>
-  </div>
-  <div id="status">Toque em Sincronizar para conectar ao Google.</div>
-  <div id="abas"></div>
-  <div id="chips"></div>
+  <div class="hbar"><button id="btnMenu" aria-label="Menu"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor"/></svg></button>
+  <button id="btnCfg" aria-label="Configurações">⚙️</button></div>
+  <div class="hero"><img src="icon-192.png" alt=""><h1>Central de Lembretes</h1><p class="sub">Seus recados em um só lugar</p></div>
+  <div id="status">Toque no menu ☰ para sincronizar · v7</div>
+  <div id="tiles"></div>
+  <button id="novo"><span style="font-size:26px;line-height:1">+</span> Novo lembrete</button>
+  <div class="cath"><span>Categorias</span><a href="#" id="verTodas">Ver todas ›</a></div>
+  <div id="cats"></div>
+  <div id="abas" hidden></div><div id="chips" hidden></div>
 </header>
 <main id="lista"></main>
 <button id="fab" class="gold" aria-label="Novo lembrete">＋</button>
 <div id="selbar"><span id="selN">0 selecionados</span><button id="selHoje">Hoje</button><button id="selCancel">Cancelar</button><button id="selGo" class="gold">Continuar</button></div>
+
+<dialog id="dMenu"><b>Menu</b>
+  <button id="btnSync" class="gold">🔄 Sincronizar com o Google</button>
+  <button id="btnZap">💬 Enviar lembretes por WhatsApp</button>
+  <div class="dlg-acts"><button id="mFechar">Fechar</button></div>
+</dialog>
 
 <dialog id="dNovo">
   <b id="dNovoT">Novo lembrete</b>
@@ -182,11 +193,12 @@ let cfg=ld('lem_cfg',{clientId:'',consent:false});
 cfg.cores=cfg.cores||{};cfg.contatos=cfg.contatos||[];cfg.agendas=cfg.agendas||{};
 if(!cfg.migr2){for(const a of Object.values(cfg.agendas))a.on=/lembret/i.test(a.n);if(cfg.sessoesHoje===undefined)cfg.sessoesHoje=true;cfg.migr2=true;sv('lem_cfg',cfg);}
 cfg.sessoesHoje=false;
+if(!cfg.migr4){cfg.tema='noite';cfg.migr4=true;sv('lem_cfg',cfg);}
 if(!cfg.migr3){for(const a of Object.values(cfg.agendas))a.on=false;cfg.driveApps=false;cfg.migr3=true;sv('lem_cfg',cfg);}
 if(cfg.sessoesHoje===undefined)cfg.sessoesHoje=true;
 let st=ld('lem_state',{done:{},ate:{},cal:{},manual:[]});   // estado da Central
 let src=ld('lem_src',[]);                                    // itens vindos dos apps
-let aba='lembretes', selMode=false, sel=new Set(), filtro='todos', token=null, tokenExp=0, tc=null, dirty=false, syncing=false, adiarKey=null, editId=null;
+let vtile='todos',verTodas=false;let aba='lembretes', selMode=false, sel=new Set(), filtro='todos', token=null, tokenExp=0, tc=null, dirty=false, syncing=false, adiarKey=null, editId=null;
 
 /* ---------- datas ---------- */
 function parseQ(q){
@@ -208,11 +220,11 @@ function regAgendas(){for(const [id,a] of Object.entries(cfg.agendas))APPS['ag:'
 regAgendas();
 function appInfo(a){const b=APPS[a]||{n:a,c:'#888888'};return {n:b.n,c:cfg.cores[a]||b.c};}
 function aplicarTema(){
-  const t=TEMAS[cfg.tema]?cfg.tema:'floresta'; document.documentElement.dataset.tema=t;
+  const t=TEMAS[cfg.tema]?cfg.tema:'noite'; document.documentElement.dataset.tema=t;
   const m=document.querySelector('meta[name=theme-color]'); if(m)m.content=TEMAS[t][1];
 }
 function montarCores(){
-  $('#temas').innerHTML=Object.entries(TEMAS).map(([k,v])=>`<button class="sw ${(cfg.tema||'floresta')===k?'on':''}" data-tema="${k}" title="${v[0]}" aria-label="${v[0]}" style="background:linear-gradient(135deg,${v[1]} 50%,${v[2]} 50%)"></button>`).join('');
+  $('#temas').innerHTML=Object.entries(TEMAS).map(([k,v])=>`<button class="sw ${(cfg.tema||'noite')===k?'on':''}" data-tema="${k}" title="${v[0]}" aria-label="${v[0]}" style="background:linear-gradient(135deg,${v[1]} 50%,${v[2]} 50%)"></button>`).join('');
   const apps=[...new Set([...Object.keys(APPS),...src.map(f=>f.app)])];
   $('#cores').innerHTML=apps.map(a=>`<div class="cor"><span>${esc(appInfo(a).n)}</span><input type="color" data-app="${esc(a)}" value="${appInfo(a).c}"></div>`).join('');
 }
@@ -239,10 +251,17 @@ function render(){
   $('#abas').innerHTML=[].map(([k,n,c])=>`<button class="aba ${aba===k?'on':''}" data-aba="${k}">${n} ${c}</button>`).join('');
   const all=todosI.filter(i=>(aba==='hoje')===ehSes(i));
   $('#fab').style.display=aba==='hoje'?'none':'';
-  const apps=[...new Set(all.map(i=>i.app))];
-  const todosApps=Object.keys(APPS).filter(k=>!k.startsWith('ag:')&&(aba!=='hoje'||k==='consultorio'));
-  $('#chips').innerHTML=['todos',...(aba==='hoje'?apps:[...new Set([...todosApps,...apps])])].map(a=>`<button class="chip ${filtro===a?'on':''}" data-f="${a}">${a==='todos'?'Todos':esc((APPS[a]||{n:a}).n)}</button>`).join('');
-  const vis=all.filter(i=>filtro==='todos'||i.app===filtro);
+  const IC={todos:'<path d="M12 3 3 8l9 5 9-5-9-5Z"/><path d="m3 12 9 5 9-5M3 16l9 5 9-5"/>',consultorio:'<path d="M6 4c0 7 2 10 6 10s6-3 6-10M12 3v18M8 21h8"/>',saude:'<path d="M12 20S4 15 4 9.5A4.5 4.5 0 0 1 12 7a4.5 4.5 0 0 1 8 2.5C20 15 12 20 12 20Z"/><path d="M5 12h4l2-3 2 5 1.5-2H19"/>',bloco:'<circle cx="9" cy="9" r="5"/><circle cx="15" cy="9" r="5"/><circle cx="12" cy="15" r="5"/>',bussola:'<circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5 5-2Z"/>',financeiro:'<ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3 3 7 3s7-1.3 7-3"/>',memoria:'<path d="M9 4a3 3 0 0 0-3 3 3 3 0 0 0-2 5 3 3 0 0 0 2 5 3 3 0 0 0 5 2V4a3 3 0 0 0-2 0ZM15 4a3 3 0 0 1 3 3 3 3 0 0 1 2 5 3 3 0 0 1-2 5 3 3 0 0 1-5 2V4a3 3 0 0 1 2 0Z"/>',mercado:'<path d="M3 4h3l2 11h10l2-8H7"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/>',central:'<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>'};
+  const NOMES={mercado:'Mercado e Compras'};
+  const ordem=['todos','consultorio','saude','bloco','financeiro','memoria','mercado','central'].concat(verTodas?['bussola']:[]);
+  $('#cats').innerHTML=ordem.map(a=>`<button class="chip cat ${filtro===a?'on':''}" data-f="${a}"><svg viewBox="0 0 24 24">${IC[a]||IC.central}</svg>${a==='todos'?'Todos':esc(NOMES[a]||(APPS[a]||{n:a}).n)}</button>`).join('');
+  const base=all.filter(i=>filtro==='todos'||i.app===filtro);
+  const nowT=new Date(), d0=new Date(nowT.getFullYear(),nowT.getMonth(),nowT.getDate()), d1=new Date(+d0+864e5);
+  const pd=base.filter(i=>!i.done);
+  const nH=pd.filter(i=>i.due&&i.due>=nowT&&i.due<d1).length, nP=pd.filter(i=>i.due&&i.due>=d1).length, nA=pd.filter(i=>i.due&&i.due<nowT).length;
+  const T=(k,svg,n,t,c)=>`<button class="tile ${c||''} ${vtile===k?'on':''}" data-tile="${k}"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">${svg}</svg><span><small>${t}</small><b>${n}</b></span></button>`;
+  $('#tiles').innerHTML=T('hoje','<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/>',nH,'Hoje')+T('prox','<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',nP,'Próximos')+T('atr','<path d="M12 3 2 20h20L12 3Z"/><path d="M12 10v4M12 17v.5"/>',nA,'Atrasados','atr');
+  const vis=base;
   const pend=vis.filter(i=>!i.done).sort((a,b)=>(a.due||9e15)-(b.due||9e15));
   const t0=new Date(now.getFullYear(),now.getMonth(),now.getDate()), t1=new Date(+t0+864e5), t2=new Date(+t0+2*864e5);
   const G=aba==='hoje'?[['Sessões de hoje',pend]]:[['Atrasados',pend.filter(i=>i.due&&i.due<now),'late'],
@@ -251,8 +270,9 @@ function render(){
            ['Próximos',pend.filter(i=>i.due&&i.due>=t2)],
            ['Sem data',pend.filter(i=>!i.due)]];
   let h='';
-  for(const [t,l,c] of G) if(l.length) h+=`<h2 class="${c||''}">${c==='late'?'⏰ ':''}${t} · ${l.length}</h2>`+l.map(card).join('');
-  if(!h)h=aba==='hoje'?'<div class="empty">Nenhuma sessão hoje na agenda Consultório.<br>Toque em Sincronizar para atualizar.</div>':'<div class="empty">Nenhum lembrete pendente 🎉</div>';
+  const GF=vtile==='todos'?G:G.filter(([t])=>vtile==='hoje'?t==='Hoje':vtile==='prox'?(t==='Amanhã'||t==='Próximos'):t==='Atrasados');
+  for(const [t,l,c] of GF) if(l.length) h+=`<h2 class="${c||''}">${c==='late'?'⏰ ':''}${t} · ${l.length}</h2>`+l.map(card).join('');
+  if(!h)h=aba==='hoje'?'<div class="empty">Nenhuma sessão hoje na agenda Consultório.<br>Toque em Sincronizar para atualizar.</div>':'<div class="empty"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="13" height="15" rx="2"/><path d="M8 3v4M13 3v4M4 10h13M7 14l1.5 1.5L11 13M18 15a3 3 0 0 1 3 3v2h-6v-2a3 3 0 0 1 3-3Z"/></svg><b>Nenhum lembrete pendente</b>Quando você criar um recado,<br>ele aparecerá aqui.</div>';
   const fe=vis.filter(i=>i.done).slice(0,30);
   if(fe.length)h+=`<details><summary>Feitos (${fe.length})</summary>${fe.map(i=>card(i,true)).join('')}</details>`;
   $('#lista').innerHTML=h; updSel();
@@ -394,7 +414,13 @@ $('#kAdd').onclick=()=>{
 document.addEventListener('click',e=>{const b=e.target.closest('[data-kdel]');if(!b)return;cfg.contatos.splice(+b.dataset.kdel,1);sv('lem_cfg',cfg);montarContatos();});
 
 /* ---------- configurações ---------- */
-$('#btnMenu').onclick=()=>$('#btnCfg').click();
+$('#btnMenu').onclick=()=>$('#dMenu').showModal();
+$('#mFechar').onclick=()=>$('#dMenu').close();
+$('#btnSync').addEventListener('click',()=>$('#dMenu').close());
+$('#btnZap').addEventListener('click',()=>$('#dMenu').close());
+$('#novo').onclick=()=>{abrirNovo();if(filtro!=='todos'&&APPS[filtro]&&!filtro.startsWith('ag:'))$('#nApp').value=filtro;};
+$('#verTodas').onclick=e=>{e.preventDefault();verTodas=!verTodas;$('#verTodas').textContent=verTodas?'Ver menos ›':'Ver todas ›';render();};
+document.addEventListener('click',e=>{const t=e.target.closest('[data-tile]');if(!t)return;vtile=vtile===t.dataset.tile?'todos':t.dataset.tile;render();});
 $('#btnCfg').onclick=()=>{$('#cDrive').checked=!!cfg.driveApps;montarCores();montarContatos();montarAgendas();$('#cClient').value=cfg.clientId||'';$('#dCfg').showModal();};
 $('#cCancel').onclick=()=>$('#dCfg').close();
 $('#cSave').onclick=()=>{cfg.clientId=$('#cClient').value.trim();sv('lem_cfg',cfg);tc=null;$('#dCfg').close();};
