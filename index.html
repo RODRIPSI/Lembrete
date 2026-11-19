@@ -193,9 +193,9 @@ let cfg=ld('lem_cfg',{clientId:'',consent:false});
 cfg.cores=cfg.cores||{};cfg.contatos=cfg.contatos||[];cfg.agendas=cfg.agendas||{};
 if(!cfg.migr2){for(const a of Object.values(cfg.agendas))a.on=/lembret/i.test(a.n);if(cfg.sessoesHoje===undefined)cfg.sessoesHoje=true;cfg.migr2=true;sv('lem_cfg',cfg);}
 cfg.sessoesHoje=false;
-if(!cfg.migr5){for(const a of Object.values(cfg.agendas))if(/lembret/i.test(a.n))a.on=true;cfg.migr5=true;sv('lem_cfg',cfg);}
 if(!cfg.migr4){cfg.tema='noite';cfg.migr4=true;sv('lem_cfg',cfg);}
 if(!cfg.migr3){for(const a of Object.values(cfg.agendas))a.on=false;cfg.driveApps=false;cfg.migr3=true;sv('lem_cfg',cfg);}
+if(!cfg.migr5){for(const a of Object.values(cfg.agendas))if(/lembret/i.test(a.n))a.on=true;cfg.migr5=true;sv('lem_cfg',cfg);}
 if(cfg.sessoesHoje===undefined)cfg.sessoesHoje=true;
 let st=ld('lem_state',{done:{},ate:{},cal:{},manual:[]});   // estado da Central
 let src=ld('lem_src',[]);                                    // itens vindos dos apps
