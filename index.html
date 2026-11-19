@@ -99,7 +99,7 @@ h2.late{color:var(--red)}
   <div class="hbar"><button id="btnMenu" aria-label="Menu"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor"/></svg></button>
   <button id="btnCfg" aria-label="Configurações">⚙️</button></div>
   <div class="hero"><img src="icon-192.png" alt=""><h1>Central de Lembretes</h1><p class="sub">Seus recados em um só lugar</p></div>
-  <div id="status">Toque no menu ☰ para sincronizar · v8</div>
+  <div id="status">Toque no menu ☰ para sincronizar · v9</div>
   <div id="tiles"></div>
   <button id="novo"><span style="font-size:26px;line-height:1">+</span> Novo lembrete</button>
   <div class="cath"><span>Categorias</span><a href="#" id="verTodas">Ver todas ›</a></div>
@@ -193,6 +193,7 @@ let cfg=ld('lem_cfg',{clientId:'',consent:false});
 cfg.cores=cfg.cores||{};cfg.contatos=cfg.contatos||[];cfg.agendas=cfg.agendas||{};
 if(!cfg.migr2){for(const a of Object.values(cfg.agendas))a.on=/lembret/i.test(a.n);if(cfg.sessoesHoje===undefined)cfg.sessoesHoje=true;cfg.migr2=true;sv('lem_cfg',cfg);}
 cfg.sessoesHoje=false;
+if(!cfg.migr5){for(const a of Object.values(cfg.agendas))if(/lembret/i.test(a.n))a.on=true;cfg.migr5=true;sv('lem_cfg',cfg);}
 if(!cfg.migr4){cfg.tema='noite';cfg.migr4=true;sv('lem_cfg',cfg);}
 if(!cfg.migr3){for(const a of Object.values(cfg.agendas))a.on=false;cfg.driveApps=false;cfg.migr3=true;sv('lem_cfg',cfg);}
 if(cfg.sessoesHoje===undefined)cfg.sessoesHoje=true;
@@ -240,7 +241,7 @@ function todos(){
     const key=app+':'+it.id, q=st.ate[key]||it.quando;
     out.push({...it,app:show||app,key,due:parseQ(q),orig:parseQ(it.quando),done:!!st.done[key]});
   };
-  src.forEach(f=>{const ag=f.app.startsWith('ag:');if(!ag&&(f.app==='financeiro'||!cfg.driveApps))return;(f.itens||[]).forEach(it=>{if(it.sessao||it.categoria==='Contas')return;if(ag){const a=cfg.agendas[f.app.slice(3)];if(!a||!a.on)return;}add(it,f.app);});});
+  src.forEach(f=>{const ag=f.app.startsWith('ag:');if(!ag&&(f.app==='financeiro'||!cfg.driveApps))return;(f.itens||[]).forEach(it=>{if(it.sessao||it.categoria==='Contas')return;if(ag){const a=cfg.agendas[f.app.slice(3)];if(!a||!a.on)return;}add(it,f.app,(ag&&it.appTag&&APPS[it.appTag])?it.appTag:undefined);});});
   st.manual.forEach(it=>{if(!(it.eu||(!it.app&&!it.categoria)))return;add(it,'central',it.app||'central');});
   return out;
 }
@@ -367,7 +368,8 @@ async function lerAgendas(){
       const itens=(j.items||[]).filter(e=>e.status!=='cancelled'&&!(e.extendedProperties&&e.extendedProperties.private&&e.extendedProperties.private.central)).map(e=>{
         const s=e.start||{};let q=null;
         if(s.dateTime)q=toLocalInput(new Date(s.dateTime));else if(s.date)q=s.date;
-        return {id:e.id,titulo:e.summary||'(sem título)',detalhe:e.location||'',quando:q,link:e.htmlLink,categoria:ses?'':'Agenda',sessao:ses};
+        const mt=/^\s*\[app:([a-z]+)\]/i.exec(e.description||'');
+        return {id:e.id,appTag:mt?mt[1].toLowerCase():'',titulo:(e.summary||'(sem título)').replace(/^🔔\s*/,''),detalhe:e.location||'',quando:q,link:e.htmlLink,categoria:ses?'':'Agenda',sessao:ses};
       });
       out.push({app:'ag:'+id,itens});
     }catch(err){}
