@@ -99,7 +99,7 @@ h2.late{color:var(--red)}
   <div class="hbar"><button id="btnMenu" aria-label="Menu"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M4 12h16M4 17h16" stroke="currentColor"/></svg></button>
   <button id="btnCfg" aria-label="Configurações">⚙️</button></div>
   <div class="hero"><img src="icon-192.png" alt=""><h1>Central de Lembretes</h1><p class="sub">Seus recados em um só lugar</p></div>
-  <div id="status">Toque no menu ☰ para sincronizar · v7</div>
+  <div id="status">Toque no menu ☰ para sincronizar · v8</div>
   <div id="tiles"></div>
   <button id="novo"><span style="font-size:26px;line-height:1">+</span> Novo lembrete</button>
   <div class="cath"><span>Categorias</span><a href="#" id="verTodas">Ver todas ›</a></div>
@@ -543,6 +543,7 @@ setInterval(()=>{avisos();render();},30000);
 
 if('serviceWorker' in navigator){let jaRec=!!navigator.serviceWorker.controller;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(jaRec&&!sessionStorage.lemRec){sessionStorage.lemRec=1;location.reload();}jaRec=true;});navigator.serviceWorker.register('sw.js').then(r=>r.update()).catch(()=>{});}
 aplicarTema();render();avisos();
+{const q=new URLSearchParams(location.search);if(q.get('novo')){setTimeout(()=>{abrirNovo();$('#nTit').value=q.get('novo');if(q.get('app')&&APPS[q.get('app')])$('#nApp').value=q.get('app');history.replaceState(null,'',location.pathname);},200);}}
 </script>
 </body>
 </html>
